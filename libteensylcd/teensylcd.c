@@ -188,6 +188,13 @@ bool teensylcd_run_time_microseconds(struct teensylcd_t *teensy, uint32_t run_ti
 	/* calculate cycles to execute for */
 	uint64_t cycles_to_execute = avr_usec_to_cycles(teensy->avr, run_time);
 	uint64_t last_cycles = teensy->avr->cycle;
+
+    /**
+     * execute as many cycles as possible in one avr_run_one call before the next 
+     * interrupt timer has to kick. this reduces the number of times we back out,
+     * just to invoke another run call again.
+     */
+    teensy->avr->run_cycle_limit = cycles_to_execute;
 	
 	/* shouldn't happen, but just in case */
 	if (cycles_to_execute < teensy->next_cycles_sub)
