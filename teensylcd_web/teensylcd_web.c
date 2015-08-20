@@ -18,6 +18,8 @@
 #include "sim_avr.h"
 #include "sim_gdb.h"
 
+#define MAXIMUM_TIME_DIFF (1000000) /* one second */
+
 volatile bool exit_flag = false;
 
 static struct teensylcd_t *teensy = NULL;
@@ -146,6 +148,11 @@ void run_loop()
     uint64_t now_time = get_time_microseconds();
     uint64_t time_diff = now_time - last_time;
     last_time = now_time;
+    if (time_diff > MAXIMUM_TIME_DIFF)
+    {
+        fprintf(stderr, "WARN: Time diff (%u) exceeds MAXIMUM_TIME_DIFF (%u). Capping at MAXIMUM_TIME_DIFF", (uint32_t)time_diff, MAXIMUM_TIME_DIFF);
+        time_diff = MAXIMUM_TIME_DIFF;
+    }
 
     /* pump events */
     SDL_PumpEvents();
