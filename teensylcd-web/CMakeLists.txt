@@ -20,10 +20,13 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EXTRA_LINKFLAGS}")
 
 add_custom_command(TARGET teensylcd-web POST_BUILD COMMAND "${PYTHON_BIN}" ARGS ${PACKAGER} teensylcd-web-preload.data --js-output=teensylcd-web-preload.js ${PRELOAD_FILES} VERBATIM)
 
-install(TARGETS teensylcd-web DESTINATION bin)
-install(FILES teensylcd-web.html DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/teensylcd-web.js.mem" DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/teensylcd-web-preload.js" DESTINATION bin)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/teensylcd-web-preload.data" DESTINATION bin)
+install(TARGETS teensylcd-web DESTINATION dist)
+install(FILES teensylcd-web.html DESTINATION dist)
+install(DIRECTORY html/css DESTINATION dist)
+install(DIRECTORY html/fonts DESTINATION dist)
+install(DIRECTORY html/js DESTINATION dist)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/teensylcd-web.js.mem" DESTINATION dist)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/teensylcd-web-preload.js" DESTINATION dist)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/teensylcd-web-preload.data" DESTINATION dist)
 
 

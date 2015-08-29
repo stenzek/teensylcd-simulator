@@ -1,10 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TeensyLCD Web Simulator</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Emscripten-Generated Code</title>
     <style>
       body {
         font-family: arial;
@@ -36,7 +35,7 @@
         width: 30px;
       }
 
-      /*#output {
+      #output {
         width: 800px;
         height: 200px;
         margin: 0 auto;
@@ -46,7 +45,7 @@
         color: white;
         font-family: 'Lucida Console', Monaco, monospace;
         outline: none;
-      }*/
+      }
       
       .led {
         width: 20px;
@@ -60,51 +59,41 @@
         display: inline-block;
       }
     </style>
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
   </head>
   <body>
-    <div class="container">
-        <div class="page-header">
-            <h1>TeensyLCD Web Simulator</h1>
-        </div>
-        
-        <div class="emscripten" id="status">Downloading...</div>
-        <div class="emscripten">
-          <progress value="0" max="100" id="progress" hidden=1></progress>
-        </div>
-        
-        <div id="canvas_container">
-          <span id="led0" class="led"></span>
-          <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-          <span id="led1" class="led"></span>
-        </div>
-        <div class="form-group">
-            <label for="firmware">Firmware upload:</label>
-            <input type="file" id="firmware"></input>
-        </div>
-        <div class="form-group">
-            <label for="reset">Controls:</label>
-        </div>
-        <div class="form-group">
-            <button class="btn btn-danger" id="reset">Reset</button></span>
-            <button class="btn btn-primary" id="pause">Pause</button></span>
-            <input class="btn btn-default" type="button" value="Fullscreen" onclick="Module.requestFullScreen(true, true)" />
-        </div>
-        <div class="form-group">
-            <textarea id="output" class="form-control" rows="8"></textarea>
-        </div>
+    <header style="text-align: center;">
+        <h1 style="margin: 4px 4px 10px 4px;">TeensyLCD Web Simulator</h1>
+    </header>
+    <div class="emscripten" id="status">Downloading...</div>
+    <div class="emscripten">
+      <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
-       
-    <div style="text-align: center;">
-        <p>
-        <em>Controls:</em><br>
-        <strong>SW0</strong>: Z<br>
-        <strong>SW1</strong>: X<br>
-        <strong>0-9</strong>: Set screen scale<br>
-        </p>
+    
+    <div id="canvas_container">
+      <span id="led0" class="led"></span>
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+      <span id="led1" class="led"></span>
     </div>
-  </div> <!-- container -->
+<div id='controls'>
+  <span>Firmware upload:&nbsp;<input type="file" id="firmware"></input></span><br>
+  <span><button id="reset">Reset</button><button id="pause">Pause</button></span><br>
+  <span><input type="checkbox" id="resize">Resize canvas</span>
+  <span><input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer &nbsp;&nbsp;&nbsp;</span>
+  <span><input type="button" value="Fullscreen" onclick="Module.requestFullScreen(document.getElementById('pointerLock').checked, 
+                                                                            document.getElementById('resize').checked)">
+  </span>
+</div>
+
+    <textarea id="output" rows="8"></textarea>
+    
+<div style="text-align: center;">
+    <p>
+    <em>Controls:</em><br>
+    <strong>SW0</strong>: Z<br>
+    <strong>SW1</strong>: X<br>
+    <strong>0-9</strong>: Set screen scale<br>
+    </p>
+</div>
     
     <script type='text/javascript'>
       function onLEDChange(index, value) {
@@ -176,7 +165,7 @@
         postRun: [onBoot],
         print: (function() {
           var element = document.getElementById('output');
-          if (element) element.innerHTML = ''; // clear browser cache
+          if (element) element.value = ''; // clear browser cache
           return function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
             // These replacements are necessary if you render to raw HTML
@@ -186,7 +175,7 @@
             //text = text.replace('\n', '<br>', 'g');
             console.log(text);
             if (element) {
-              element.innerHTML += text + "\n";
+              element.value += text + "\n";
               element.scrollTop = element.scrollHeight; // focus on bottom
             }
           };
@@ -244,7 +233,5 @@
     </script>
     <script type="text/javascript" src="teensylcd-web-preload.js"></script>
     <script async type="text/javascript" src="teensylcd-web.js"></script>
-    <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
   </body>
 </html>
