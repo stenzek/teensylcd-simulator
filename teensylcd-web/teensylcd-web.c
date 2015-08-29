@@ -46,6 +46,8 @@ void set_led_change_callback(void(*fptr)(int index, int value))
 void setup();
 void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool trace_interrupts);
 void reset_processor();
+void pause_processor();
+void resume_processor();
 void run_loop();
 
 void setup()
@@ -67,6 +69,7 @@ void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool 
     if (teensy != NULL)
     {
         // previous run, cancel it
+        teensylcd_cleanup(teensy);
         free(teensy);
         teensy = NULL;
     }
@@ -228,7 +231,23 @@ void run_loop()
 
 void reset_processor()
 {
+    fprintf(stdout, "Resetting processor.\n");
+    teensylcd_reset(teensy);
+}
 
+void pause_processor()
+{
+    fprintf(stdout, "Pausing processor.\n");
+    emscripten_pause_main_loop();
+}
+
+void resume_processor()
+{
+    fprintf(stdout, "Resuming processor.\n");
+    emscripten_resume_main_loop();
+
+    /* prevent massive jump in time */
+    last_time = get_time_microseconds();
 }
 
 int main(int argc, char *argv[])

@@ -43,6 +43,9 @@ struct teensylcd_t
 /* initializer */
 bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency);
 
+/* reset the processor, keeping firmware loaded */
+void teensylcd_reset(struct teensylcd_t *teensy);
+
 /* ELF firmware loader */
 bool teensylcd_load_elf(struct teensylcd_t *teensy, const char *filename);
 

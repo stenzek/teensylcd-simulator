@@ -144,7 +144,16 @@
         fileReader.readAsBinaryString(file);
       }
       document.getElementById('firmware').addEventListener('change', onFirmwareUpload, false);
-      document.getElementById('pause').addEventListener('click', function(e) { /* pause main loop */ }, false);
+      document.getElementById('reset').addEventListener('click', function(e) { Module.ccall('reset_processor', null, [], []); }, false);
+      document.getElementById('pause').addEventListener('click', function(e) { 
+                                                                    if (this.innerHTML == 'Pause') {
+                                                                        this.innerHTML = 'Resume';
+                                                                        Module.ccall('pause_processor');
+                                                                    } else {
+                                                                        this.innerHTML = 'Pause';
+                                                                        Module.ccall('resume_processor');
+                                                                    }}, false);
+
     </script>
 
     <script type='text/javascript'>

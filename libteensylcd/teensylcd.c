@@ -84,8 +84,13 @@ bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency)
 	memset(teensy->button_states, 0, sizeof(teensy->button_states));
 	
 	/* hook up lcd */
-	pcd8544_init(teensy->avr, &teensy->lcd);
+    pcd8544_init(teensy->avr, &teensy->lcd);
 	return true;
+}
+
+void teensylcd_reset(struct teensylcd_t *teensy)
+{
+    avr_reset(teensy->avr);
 }
 
 bool teensylcd_load_elf(struct teensylcd_t *teensy, const char *filename)
@@ -165,7 +170,7 @@ void teensylcd_set_button_state(struct teensylcd_t *teensy, enum TEENSYLCD_BUTTO
 	teensy->button_states[button] = state;
 	avr_raise_irq(teensy->button_irqs[button], state);
 	
-	printf("set button %u %u\n", button, state);
+	//printf("set button %u %u\n", button, state);
 }
 
 void teensylcd_push_button(struct teensylcd_t *teensy, enum TEENSYLCD_BUTTON button)
@@ -269,5 +274,7 @@ bool teensylcd_run_until_refresh(struct teensylcd_t *teensy)
 
 void teensylcd_cleanup(struct teensylcd_t *teensy)
 {
-	// TODO
+    avr_terminate(teensy->avr);
+    // @TODO the free() here breaks emscripten, figure out why, because it's a leak.
+    //free(teensy->avr);
 }
