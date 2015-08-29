@@ -90,6 +90,10 @@ bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency)
 
 bool teensylcd_load_elf(struct teensylcd_t *teensy, const char *filename)
 {
+#ifdef __EMSCRIPTEN__
+    fprintf(stderr, "Not compiled with ELF support.\n");
+    return false;
+#else
 	elf_firmware_t f = {{0}};
 	if (elf_read_firmware(filename, &f))
 	{
@@ -99,6 +103,7 @@ bool teensylcd_load_elf(struct teensylcd_t *teensy, const char *filename)
 
 	avr_load_firmware(teensy->avr, &f);
 	return true;
+#endif
 }
 
 bool teensylcd_load_hex(struct teensylcd_t *teensy, const char *filename)
