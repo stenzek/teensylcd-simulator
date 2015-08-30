@@ -36,8 +36,9 @@
             border: 0px none;
             width: 84px;
             height: 48px;
-            image-rendering: pixelated; /* webkit */
+            image-rendering: -webkit-optimize-contrast; /* safari-webkit */
             image-rendering: -moz-crisp-edges; /* Firefox */
+            image-rendering: pixelated; /* chrome-webkit */
             -ms-interpolation-mode: nearest-neighbor; /* IE */
             display: inline-block;
         }
