@@ -7,7 +7,7 @@ set(SOURCE_FILES
 
 set(EXTRA_LINKFLAGS "")
 set(EXTRA_LINKFLAGS "${EXTRA_LINKFLAGS} -s RESERVED_FUNCTION_POINTERS=20")
-set(EXTRA_LINKFLAGS "${EXTRA_LINKFLAGS} -s EXPORTED_FUNCTIONS=\"['_load_firmware', '_reset_processor', '_pause_processor', '_resume_processor', '_set_led_change_callback', '_main']\"")
+set(EXTRA_LINKFLAGS "${EXTRA_LINKFLAGS} -s EXPORTED_FUNCTIONS=\"['_load_firmware', '_reset_processor', '_pause_processor', '_resume_processor', '_set_processor_frequency', '_set_button_state', '_set_led_change_callback', '_main']\"")
 
 set(PYTHON_BIN "python")
 set(PACKAGER "${EMSCRIPTEN_ROOT_PATH}/tools/file_packager.py")

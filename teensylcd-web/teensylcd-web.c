@@ -25,7 +25,6 @@ volatile bool exit_flag = false;
 static struct teensylcd_t *teensy = NULL;
 static uint64_t last_time = 0;
 
-static uint32_t window_scale = 1;
 static SDL_Surface *screen = NULL;
 static uint8_t *luminance_buffer = NULL;
 
@@ -48,6 +47,8 @@ void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool 
 void reset_processor();
 void pause_processor();
 void resume_processor();
+void set_processor_frequency(int frequency);
+void set_button_state(int button, bool state);
 void run_loop();
 
 void setup()
@@ -56,12 +57,11 @@ void setup()
     
     /* create lcd window */
     fprintf(stdout, "Creating LCD window...\n");
-    window_scale = 4;
-    screen = SDL_SetVideoMode(PCD8544_LCD_X * window_scale, PCD8544_LCD_Y * window_scale, 32, SDL_SWSURFACE);
+    screen = SDL_SetVideoMode(PCD8544_LCD_X, PCD8544_LCD_Y, 32, SDL_HWSURFACE);
     luminance_buffer = (uint8_t *)malloc(PCD8544_LCD_X * PCD8544_LCD_Y);
     assert(screen != NULL && luminance_buffer != NULL);
     
-    EM_ASM("SDL.defaults.copyOnLock = false; SDL.defaults.discardOnLock = true; SDL.defaults.opaqueFrontBuffer = false;");   
+    EM_ASM("SDL.defaults.copyOnLock = false; SDL.defaults.discardOnLock = true; SDL.defaults.opaqueFrontBuffer = true;");   
 }
 
 void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool trace_interrupts)
@@ -180,13 +180,6 @@ void run_loop()
                 /* push sw1 */
                 teensylcd_set_button_state(teensy, TEENSYLCD_BUTTON_SW1, (event.type == SDL_KEYDOWN));
             }
-            else if (event.key.keysym.scancode >= SDL_SCANCODE_1 && event.key.keysym.scancode <= SDL_SCANCODE_9)
-            {
-                /* set display scale */
-                window_scale = event.key.keysym.scancode - SDL_SCANCODE_1 + 1;
-                screen = SDL_SetVideoMode(PCD8544_LCD_X * window_scale, PCD8544_LCD_Y * window_scale, 32, SDL_SWSURFACE);
-                teensy->lcd.pixels_changed = true;
-            }
         }
     }
     
@@ -205,24 +198,21 @@ void run_loop()
             SDL_LockSurface(screen);
             
         /* map luminance to rgba */
-        size_t width = PCD8544_LCD_X * window_scale;
-        size_t height = PCD8544_LCD_Y * window_scale;
-        for (size_t y = 0; y < height; y++)
+        for (size_t y = 0; y < PCD8544_LCD_Y; y++)
         {
             //const uint8_t *pixin = luminance_buffer + (y * PCD8544_LCD_X);
             uint32_t *pixout = screen->pixels + (y * screen->pitch);
-            for (size_t x = 0; x < width; x++)
+            for (size_t x = 0; x < PCD8544_LCD_X; x++)
             {
                 //uint8_t luminance = *(pixin++);
-                /* horrible nearest-neighbour resizing */
-                uint8_t luminance = luminance_buffer[(y / window_scale * PCD8544_LCD_X) + (x / window_scale)];
+                uint8_t luminance = luminance_buffer[(y * PCD8544_LCD_X) + x];
                 *(pixout++) = SDL_MapRGBA(screen->format, luminance, luminance, luminance, 255);
             }
         }
-       
+        
         if (SDL_MUSTLOCK(screen))
             SDL_UnlockSurface(screen);
-        
+
         SDL_Flip(screen);
         
         teensy->lcd.pixels_changed = false;
@@ -248,6 +238,21 @@ void resume_processor()
 
     /* prevent massive jump in time */
     last_time = get_time_microseconds();
+}
+
+void set_processor_frequency(int frequency)
+{
+    if (teensy->avr->frequency == frequency)
+        return;
+
+    teensy->avr->frequency = frequency;
+    last_time = get_time_microseconds();
+    fprintf(stdout, "Frequency changed to %d hz\n", frequency);
+}
+
+void set_button_state(int button, bool state)
+{
+    teensylcd_set_button_state(teensy, button, state);
 }
 
 int main(int argc, char *argv[])

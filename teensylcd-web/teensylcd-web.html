@@ -1,123 +1,185 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TeensyLCD Web Simulator</title>
     <style>
-      body {
-        font-family: arial;
-        margin: 0;
-        padding: none;
-      }
- 
-      #canvas_container { 
-        /*border: 1px solid black;*/
-        text-align: center;
-      }
-      
-      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
-      canvas.emscripten { border: 0px none; }
+        #status {
+            text-align: center;
+            display: block;
+        }
+       
+        #display-container {
+            text-align: center;
+        }
+        
+        .led-container {
+            display: inline-block;
+            vertical-align: top;
+            margin: 10px;
+        }
+        
+        .led {
+            width: 20px;
+            height: 20px;
+            background-color: black;
+            display: block;
+        }
+        
+        .led-on {
+            background-color: red;
+        }
+        
+        #lcd {
+            border: 0px none;
+            width: 84px;
+            height: 48px;
+            image-rendering: -webkit-optimize-contrast; /* webkit */
+            image-rendering: -moz-crisp-edges; /* Firefox */
+            display: inline-block;
+        }
+        
+        @media (min-width: 400px) {
+            .led { width: 16px; height: 16px; }
+            #lcd { width: 252px; height: 144px; }
+        }
+        
+        @media (min-width: 500px) {
+            .led { width: 24px; height: 24px; }
+            #lcd { width: 336px; height: 192px; }
+        }
+        
+        @media (min-width: 600px) {
+            .led { width: 32px; height: 32px; }
+            #lcd { width: 420px; height: 240px; }
+        }
+        
+        @media (min-width: 800px) {
+            .led { width: 48px; height: 48px; }
+            #lcd { width: 504px; height: 288px; }
+        }
+        
+        @media (min-width: 1200px) {
+            .led { width: 64px; height: 64px; }
+            #lcd { width: 840px; height: 480px; }
+        }
+        
+        #controls-container {
+            /*border: 1px solid #CCC;
+            border-radius: 4px;*/
+        }
+        
+        .controls {
+            /*text-align: center;*/
+            /*margin: 0 auto;*/
+        }
+        
+        .controls input[type=file] {
+            /*border: 1px solid #CCC;
+            border-radius: 4px;*/
+        }
+        
+        .controls select {
+            width: 150px;
+        }
+        
+        #output {
+            font-family: 'Lucida Console', Monaco, monospace;
+            font-size: 12px;
+            padding: 4px;
+            resize: none;
+        }
 
-      #status {
-        font-weight: bold;
-        color: rgb(120, 120, 120);
-        width: 100%;
-        text-align: center;
-      }
-      
-      #controls {
-        text-align: center;
-      }
-
-      #progress {
-        height: 20px;
-        width: 30px;
-      }
-
-      /*#output {
-        width: 800px;
-        height: 200px;
-        margin: 0 auto;
-        margin-top: 10px;
-        display: block;
-        background-color: black;
-        color: white;
-        font-family: 'Lucida Console', Monaco, monospace;
-        outline: none;
-      }*/
-      
-      .led {
-        width: 20px;
-        height: 20px;
-        background-color: black;
-        display: inline-block;
-        vertical-align: top;
-      }
-      
-      #canvas {
-        display: inline-block;
-      }
     </style>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/bootstrap-theme.min.css">
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-        <div class="page-header">
-            <h1>TeensyLCD Web Simulator</h1>
+        <div class="page-header" style="margin-top: 10px;">
+            <h3>TeensyLCD Web Simulator</h3>
         </div>
         
-        <div class="emscripten" id="status">Downloading...</div>
-        <div class="emscripten">
-          <progress value="0" max="100" id="progress" hidden=1></progress>
+        <div id="status">
+            Downloading...
         </div>
         
-        <div id="canvas_container">
-          <span id="led0" class="led"></span>
-          <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
-          <span id="led1" class="led"></span>
+        <div id="app-container" style="display: none; ">
+            <div id="display-container">
+                <span class="led-container">
+                    LED0<br>
+                    <span id="led0" class="led"></span>
+                </span>
+                <canvas class="emscripten" id="lcd" oncontextmenu="event.preventDefault()" width="84" height="48"></canvas>
+                <span class="led-container">
+                    LED1<br>
+                    <span id="led1" class="led"></span>
+                </span>
+            </div>
+            <div class="form-group" style="text-align: center; ">
+                <button class="btn btn-primary" id="SW0-button">SW0</button>
+                <button class="btn btn-primary" id="SW1-button">SW1</button>
+            </div>
+            <div id="controls-container" class="panel panel-default">
+                <div class="panel-heading">Controls</div>
+                <div class="panel-body">
+                    <div class="form-group controls">
+                        <label for="firmware">Firmware upload:</label>
+                        <input type="file" id="firmware"></input>
+                    </div>
+                    <div class="form-group controls">
+                        <label for="frequency">MCU Clock Speed:</label>
+                        <select id="frequency" class="form-control">
+                            <option value="2000000">2MHz</option>
+                            <option value="4000000">4MHz</option>
+                            <option value="8000000" selected>8MHz</option>
+                            <option value="16000000">16MHz</option>
+                        </select>
+                    </div>
+                    <div class="form-group controls">
+                        <label for="reset">MCU Control:</label><br />
+                        <button class="btn btn-warning" id="pause" style="padding: 6px 16px; ">Pause</button>
+                        <button class="btn btn-danger" id="reset" style="padding: 6px 16px; ">Reset</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="output">Log:</label>
+                <textarea id="output" class="form-control" rows="8" readonly></textarea>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="firmware">Firmware upload:</label>
-            <input type="file" id="firmware"></input>
-        </div>
-        <div class="form-group">
-            <label for="reset">Controls:</label>
-        </div>
-        <div class="form-group">
-            <button class="btn btn-danger" id="reset">Reset</button></span>
-            <button class="btn btn-primary" id="pause">Pause</button></span>
-            <input class="btn btn-default" type="button" value="Fullscreen" onclick="Module.requestFullScreen(true, true)" />
-        </div>
-        <div class="form-group">
-            <textarea id="output" class="form-control" rows="8"></textarea>
-        </div>
-    </div>
-       
-    <div style="text-align: center;">
-        <p>
-        <em>Controls:</em><br>
-        <strong>SW0</strong>: Z<br>
-        <strong>SW1</strong>: X<br>
-        <strong>0-9</strong>: Set screen scale<br>
-        </p>
-    </div>
-  </div> <!-- container -->
+    </div> <!-- container -->
     
-    <script type='text/javascript'>
+    <script type="text/javascript">
+        // set default frequency
+        document.getElementById('frequency').value = 8000000;
+        
       function onLEDChange(index, value) {
         //console.log('led change ' + index + ' ' + value);
         
         var elem = null;
         if (index == 0)
-            elem = document.getElementById('led0');
+            elem = $('#led0');
         else if (index == 1)
-            elem = document.getElementById('led1');
+            elem = $('#led1');
         
-        if (elem != null)
-            elem.style.backgroundColor = (value != 0) ? "red" : "black";
+        if (elem != null) {
+            if (value != 0)
+                elem.addClass("led-on");
+            else
+                elem.removeClass("led-on");
+        }
+      }
+      function setButtonState(button, enabled) {
+        Module.ccall('set_button_state', null, ['number', 'boolean'], [button, enabled]);
+      }
+      function getFrequency() {
+        return parseInt(document.getElementById('frequency').value);
+      }
+      function setFrequency(frequency) {
+        Module.ccall('set_processor_frequency', null, ['number'], [frequency]);
       }
       function onBoot() {
         // hook up led callback
@@ -126,7 +188,7 @@
         //Runtime.removeFunction(pointer);
       }
       function runFirmware(filename) {
-        var frequency = 8000000;
+        var frequency = getFrequency();
         var verbose = true;
         var trace = false;
         Module.ccall('load_firmware', null, ['string', 'number', 'boolean', 'boolean'], [filename, frequency, verbose, trace]);
@@ -155,6 +217,7 @@
         fileReader.readAsBinaryString(file);
       }
       document.getElementById('firmware').addEventListener('change', onFirmwareUpload, false);
+      document.getElementById('frequency').addEventListener('change', function(e) { setFrequency(getFrequency()); }, false);
       document.getElementById('reset').addEventListener('click', function(e) { Module.ccall('reset_processor', null, [], []); }, false);
       document.getElementById('pause').addEventListener('click', function(e) { 
                                                                     if (this.innerHTML == 'Pause') {
@@ -164,13 +227,12 @@
                                                                         this.innerHTML = 'Pause';
                                                                         Module.ccall('resume_processor');
                                                                     }}, false);
-
-    </script>
-
-    <script type='text/javascript'>
-      var statusElement = document.getElementById('status');
-      var progressElement = document.getElementById('progress');
-
+      
+      document.getElementById('SW0-button').addEventListener('mousedown', function(e) { setButtonState(0, true); }, false);
+      document.getElementById('SW0-button').addEventListener('mouseup', function(e) { setButtonState(0, false); }, false);
+      document.getElementById('SW1-button').addEventListener('mousedown', function(e) { setButtonState(1, true); }, false);
+      document.getElementById('SW1-button').addEventListener('mouseup', function(e) { setButtonState(1, false); }, false);
+      
       var Module = {
         preRun: [],
         postRun: [onBoot],
@@ -180,10 +242,10 @@
           return function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
             // These replacements are necessary if you render to raw HTML
-            //text = text.replace(/&/g, "&amp;");
-            //text = text.replace(/</g, "&lt;");
-            //text = text.replace(/>/g, "&gt;");
-            //text = text.replace('\n', '<br>', 'g');
+            text = text.replace(/&/g, "&amp;");
+            text = text.replace(/</g, "&lt;");
+            text = text.replace(/>/g, "&gt;");
+            text = text.replace('\n', '<br>', 'g');
             console.log(text);
             if (element) {
               element.innerHTML += text + "\n";
@@ -200,17 +262,17 @@
           }
         },
         canvas: (function() {
-          var canvas = document.getElementById('canvas');
-
-          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
-          // application robust, you may want to override this behavior before shipping!
-          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
-
+          var canvas = document.getElementById('lcd');
           return canvas;
         })(),
         setStatus: function(text) {
-          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+            var statusElement = document.getElementById('status');
+            statusElement.innerHTML = text;
+            console.log(statusElement);
+            console.log(text);
+        },
+          /*console.log(text);
+        if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
           if (text === Module.setStatus.text) return;
           var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
           var now = Date.now();
@@ -226,11 +288,15 @@
             progressElement.hidden = true;
           }
           statusElement.innerHTML = text;
-        },
+        },*/
         totalDependencies: 0,
         monitorRunDependencies: function(left) {
           this.totalDependencies = Math.max(this.totalDependencies, left);
           Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+          if (left == 0) {
+            $('#status').css("display", "none");
+            $('#app-container').css("display", "block");
+          }
         }
       };
       Module.setStatus('Downloading...');
