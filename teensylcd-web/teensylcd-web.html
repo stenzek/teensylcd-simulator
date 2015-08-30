@@ -36,8 +36,9 @@
             border: 0px none;
             width: 84px;
             height: 48px;
-            image-rendering: -webkit-optimize-contrast; /* webkit */
+            image-rendering: pixelated; /* webkit */
             image-rendering: -moz-crisp-edges; /* Firefox */
+            -ms-interpolation-mode: nearest-neighbor; /* IE */
             display: inline-block;
         }
         
@@ -268,27 +269,8 @@
         setStatus: function(text) {
             var statusElement = document.getElementById('status');
             statusElement.innerHTML = text;
-            console.log(statusElement);
             console.log(text);
         },
-          /*console.log(text);
-        if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
-          if (text === Module.setStatus.text) return;
-          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-          var now = Date.now();
-          if (m && now - Date.now() < 30) return; // if this is a progress update, skip it if too soon
-          if (m) {
-            text = m[1];
-            progressElement.value = parseInt(m[2])*100;
-            progressElement.max = parseInt(m[4])*100;
-            progressElement.hidden = false;
-          } else {
-            progressElement.value = null;
-            progressElement.max = null;
-            progressElement.hidden = true;
-          }
-          statusElement.innerHTML = text;
-        },*/
         totalDependencies: 0,
         monitorRunDependencies: function(left) {
           this.totalDependencies = Math.max(this.totalDependencies, left);
