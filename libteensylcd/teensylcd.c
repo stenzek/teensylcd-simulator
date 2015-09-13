@@ -85,6 +85,7 @@ bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel
 	
 	/* hook up lcd */
     pcd8544_init(teensy->avr, &teensy->lcd);
+    printf("TeensyLCD initialized. Frequency = %uhz\n", teensy->avr->frequency);
 	return true;
 }
 

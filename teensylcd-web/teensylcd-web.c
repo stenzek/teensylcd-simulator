@@ -24,11 +24,13 @@ volatile bool exit_flag = false;
 
 static struct teensylcd_t *teensy = NULL;
 static uint64_t last_time = 0;
+static uint32_t last_frequency = TEENSYLCD_DEFAULT_FREQUENCY;
 
 static SDL_Surface *screen = NULL;
 static uint8_t *luminance_buffer = NULL;
 
 static void(*led_change_callback)(int index, int value);
+static void(*frequency_change_callback)(uint32_t old_frequency, uint32_t new_frequency);
 
 static void led_change_callback_wrapper(void *teensy, enum TEENSYLCD_LED led, bool state)
 {
@@ -36,9 +38,14 @@ static void led_change_callback_wrapper(void *teensy, enum TEENSYLCD_LED led, bo
         led_change_callback((int)led, (state) ? 1 : 0);
 }
 
-void set_led_change_callback(void(*fptr)(int index, int value))
+void set_led_change_callback(void(*fptr)(int, int))
 {
     led_change_callback = fptr;
+}
+
+void set_frequency_change_callback(void(*fptr)(uint32_t, uint32_t))
+{
+    frequency_change_callback = fptr;
 }
 
 /* methods */
@@ -76,7 +83,7 @@ void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool 
     
     /* create teensy */
     teensy = (struct teensylcd_t *)malloc(sizeof(struct teensylcd_t));
-    if (teensy == NULL || !teensylcd_init(teensy, frequency))
+    if (teensy == NULL || !teensylcd_init(teensy, frequency, LOG_TRACE))
     {
         fprintf(stderr, "Failed to create teensylcd.\n");
         free(teensy);
@@ -127,10 +134,11 @@ void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool 
     teensylcd_set_led_callback(teensy, led_change_callback_wrapper);
 
     /* log */
-    printf("AVR core running...\n");
+    printf("AVR core initialized.\n");
     
     /* prevent massive jump in time */
     last_time = get_time_microseconds();
+    last_frequency = frequency;
 }
 
 void run_loop()
@@ -217,6 +225,15 @@ void run_loop()
         
         teensy->lcd.pixels_changed = false;
     }
+
+    /* check for frequency changes */
+    if (teensy->avr->frequency != last_frequency)
+    {
+        if (frequency_change_callback != NULL)
+            frequency_change_callback(last_frequency, teensy->avr->frequency);
+
+        last_frequency = teensy->avr->frequency;
+    }
 }
 
 void reset_processor()
@@ -257,8 +274,11 @@ void set_button_state(int button, bool state)
 
 int main(int argc, char *argv[])
 {
+    fprintf(stdout, "main()\n");
     setup();
+    fprintf(stdout, "setup() done\n");
     load_firmware("start.hex", TEENSYLCD_DEFAULT_FREQUENCY, true, false);
+    fprintf(stdout, "load_firmware() done\n");
     emscripten_set_main_loop(run_loop, 0, 1);
     return 0;
 }
