@@ -29,8 +29,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <libelf.h>
-#include <gelf.h>
 
 #include "sim_elf.h"
 #include "sim_vcd_file.h"
@@ -219,6 +217,10 @@ static void elf_parse_mmcu_section(elf_firmware_t * firmware, uint8_t * src, uin
 	}
 }
 
+#ifndef EMSCRIPTEN
+#include <libelf.h>
+#include <gelf.h>
+
 int elf_read_firmware(const char * file, elf_firmware_t * firmware)
 {
 	Elf32_Ehdr elf_header;			/* ELF header */
@@ -359,3 +361,12 @@ int elf_read_firmware(const char * file, elf_firmware_t * firmware)
 	return 0;
 }
 
+#else           // EMSCRIPTEN
+
+int elf_read_firmware(const char * file, elf_firmware_t * firmware)
+{
+    fprintf(stderr, "elf_read_firmware unsupported on emscripten target\n");
+    return -1;
+}
+
+#endif          // EMSCRIPTEN
