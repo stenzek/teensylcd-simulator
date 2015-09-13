@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include "pcd8544.h"
 
-/* default clock speed, ie 8Mhz */
-#define TEENSYLCD_DEFAULT_FREQUENCY (8000000)
+/* default clock speed, ie 16Mhz */
+#define TEENSYLCD_DEFAULT_FREQUENCY (16000000)
 
 /* led enumeration */
 enum TEENSYLCD_LED
