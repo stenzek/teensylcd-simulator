@@ -53,7 +53,7 @@ static avr_cycle_count_t button_auto_release(avr_t *avr, avr_cycle_count_t when,
 	return 0;
 }
 
-bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency)
+bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel)
 {
 	/* create mcu */
     teensy->avr = avr_make_mcu_by_name("atmega32u4");
@@ -66,8 +66,8 @@ bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency)
     /* init mcu */
     avr_init(teensy->avr);
     teensy->avr->frequency = frequency;
-    teensy->avr->log = 0;
-    teensy->avr->trace = false;
+    teensy->avr->log = loglevel;
+    teensy->avr->trace = (loglevel >= LOG_TRACE);
 	
 	/* hook up leds */
 	avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 2), led0_changed_hook, teensy);

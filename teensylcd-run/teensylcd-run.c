@@ -112,19 +112,12 @@ int main(int argc, char *argv[])
     
     /* create teensy */
     struct teensylcd_t *teensy = (struct teensylcd_t *)malloc(sizeof(struct teensylcd_t));
-    if (teensy == NULL || !teensylcd_init(teensy, frequency))
+    if (teensy == NULL || !teensylcd_init(teensy, frequency, (verbose) ? LOG_TRACE : LOG_WARNING))
     {
         fprintf(stderr, "Failed to create teensylcd.\n");
         return -1;
     }
-    
-    /* update log */
-    if (verbose)
-    {
-        teensy->avr->log = LOG_TRACE;
-        teensy->avr->trace = true;
-    }
-    
+       
     /* trace interrupts */
     if (trace_interrupts)
     {

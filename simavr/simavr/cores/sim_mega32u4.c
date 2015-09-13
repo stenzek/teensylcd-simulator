@@ -31,6 +31,7 @@
 #include "avr_timer.h"
 #include "avr_spi.h"
 #include "avr_twi.h"
+#include "avr_clkpr.h"
 
 #define _AVR_IO_H_
 #define __ASSEMBLER__
@@ -45,7 +46,8 @@ static void m32u4_reset(struct avr_t * avr);
 
 struct mcu_t {
 	avr_t          core;
-	avr_eeprom_t 	eeprom;
+    avr_clkpr_t     clkpr;
+    avr_eeprom_t 	eeprom;
 	avr_flash_t 	selfprog;
 	avr_watchdog_t	watchdog;
 	avr_extint_t	extint;
@@ -63,6 +65,12 @@ struct mcu_t {
 		.init = m32u4_init,
 		.reset = m32u4_reset,
 	},
+    AVR_CLKPR_DECLARE(16000000, CLKPR),
+//     .clkpr = { 
+//         .base_frequency = 16000000, 
+//         .ioaddr = CLKPR, 
+//         .current_prescale = 0x00
+//     },
 	AVR_EEPROM_DECLARE(EE_READY_vect),
 	AVR_SELFPROG_DECLARE(SPMCSR, SPMEN, SPM_READY_vect),
 	AVR_WATCHDOG_DECLARE(WDTCSR, _VECTOR(0)),
@@ -425,6 +433,7 @@ static void m32u4_init(struct avr_t * avr)
 {
     struct mcu_t * mcu = (struct mcu_t*)avr;
 
+    avr_clkpr_init(avr, &mcu->clkpr);
     avr_eeprom_init(avr, &mcu->eeprom);
     avr_flash_init(avr, &mcu->selfprog);
     avr_watchdog_init(avr, &mcu->watchdog);

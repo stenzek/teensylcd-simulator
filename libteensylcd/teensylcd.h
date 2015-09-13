@@ -41,7 +41,7 @@ struct teensylcd_t
 };
 
 /* initializer */
-bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency);
+bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel);
 
 /* reset the processor, keeping firmware loaded */
 void teensylcd_reset(struct teensylcd_t *teensy);

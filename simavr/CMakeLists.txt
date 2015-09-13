@@ -5,6 +5,7 @@ set(HEADER_FILES
     simavr/cores/sim_core_declare.h
     simavr/sim/avr/avr_mcu_section.h
     simavr/sim/avr_adc.h
+    simavr/sim/avr_clkpr.h
     simavr/sim/avr_bitbang.h
     simavr/sim/avr_eeprom.h
     simavr/sim/avr_extint.h
@@ -39,6 +40,7 @@ set(HEADER_FILES
 set(SOURCE_FILES 
     simavr/cores/sim_mega32u4.c
     simavr/sim/avr_adc.c
+    simavr/sim/avr_clkpr.c
     simavr/sim/avr_bitbang.c
     simavr/sim/avr_eeprom.c
     simavr/sim/avr_extint.c
