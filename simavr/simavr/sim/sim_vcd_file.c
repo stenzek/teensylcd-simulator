@@ -126,7 +126,7 @@ static void avr_vcd_flush_log(avr_vcd_t * vcd)
 	uint64_t oldbase = 0;	// make sure it's different
 	char out[48];
 
-	if (!vcd->logindex)
+	if (!vcd->logindex || !vcd->output)
 		return;
 //	printf("avr_vcd_flush_log %d\n", vcd->logindex);
 
@@ -219,6 +219,7 @@ int avr_vcd_start(avr_vcd_t * vcd)
 		fprintf(vcd->output, "%s\n", _avr_vcd_get_float_signal_text(s, out));
 	}
 	fprintf(vcd->output, "$end\n");
+	vcd->logindex = 0;
 	vcd->start = vcd->avr->cycle;
 	avr_cycle_timer_register(vcd->avr, vcd->period, _avr_vcd_timer, vcd);
 	return 0;

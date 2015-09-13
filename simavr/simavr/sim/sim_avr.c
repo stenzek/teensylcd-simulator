@@ -40,16 +40,16 @@ static avr_logger_p _avr_global_logger = std_logger;
 
 void
 avr_global_logger(
-		struct avr_t* avr, 
-		const int level, 
-		const char * format, 
+		struct avr_t* avr,
+		const int level,
+		const char * format,
 		... )
 {
 	va_list args;
 	va_start(args, format);
 	if (_avr_global_logger)
 		_avr_global_logger(avr, level, format, args);
-	va_end(args);	
+	va_end(args);
 }
 
 void
@@ -76,15 +76,15 @@ int avr_init(avr_t * avr)
 #ifdef CONFIG_SIMAVR_TRACE
 	avr->trace_data = calloc(1, sizeof(struct avr_trace_data_t));
 #endif
-	
+
 	AVR_LOG(avr, LOG_TRACE, "%s init\n", avr->mmcu);
 
 	// cpu is in limbo before init is finished.
 	avr->state = cpu_Limbo;
 	avr->frequency = 1000000;	// can be overridden via avr_mcu_section
 	avr_interrupt_init(avr);
-	if (avr->special_init)
-		avr->special_init(avr, avr->special_data);
+	if (avr->custom.init)
+		avr->custom.init(avr, avr->custom.data);
 	if (avr->init)
 		avr->init(avr);
 	// set default (non gdb) fast callbacks
@@ -93,14 +93,14 @@ int avr_init(avr_t * avr)
 	// number of address bytes to push/pull on/off the stack
 	avr->address_size = avr->eind ? 3 : 2;
 	avr->log = 1;
-	avr_reset(avr);	
+	avr_reset(avr);
 	return 0;
 }
 
 void avr_terminate(avr_t * avr)
 {
-	if (avr->special_deinit)
-		avr->special_deinit(avr, avr->special_data);
+	if (avr->custom.deinit)
+		avr->custom.deinit(avr, avr->custom.data);
 	if (avr->gdb) {
 		avr_deinit_gdb(avr);
 		avr->gdb = NULL;
@@ -125,7 +125,7 @@ void avr_reset(avr_t * avr)
 	for(int i = 0x20; i < noof_ios; i++)
 		avr->data[i] = 0;
 	_avr_sp_set(avr, avr->ramend);
-	avr->pc = 0;
+	avr->pc = avr->reset_pc;	// Likely to be zero
 	for (int i = 0; i < 8; i++)
 		avr->sreg[i] = 0;
 	avr_interrupt_reset(avr);
@@ -148,7 +148,7 @@ void avr_sadly_crashed(avr_t *avr, uint8_t signal)
 		// enable gdb server, and wait
 		if (!avr->gdb)
 			avr_gdb_init(avr);
-	} 
+	}
 	if (!avr->gdb)
 		avr->state = cpu_Crashed;
 }
@@ -224,9 +224,9 @@ void avr_loadcode(avr_t * avr, uint8_t * code, uint32_t size, avr_flashaddr_t ad
  * a minimum count of requested sleep microseconds are reached
  * (low amounts cannot be handled accurately).
  */
-uint32_t 
+uint32_t
 avr_pending_sleep_usec(
-		avr_t * avr, 
+		avr_t * avr,
 		avr_cycle_count_t howLong)
 {
 	avr->sleep_usec += avr_cycles_to_usec(avr, howLong);
@@ -256,7 +256,7 @@ void avr_callback_run_gdb(avr_t * avr)
 	int step = avr->state == cpu_Step;
 	if (step)
 		avr->state = cpu_Running;
-	
+
 	avr_flashaddr_t new_pc = avr->pc;
 
 	if (avr->state == cpu_Running) {
@@ -288,7 +288,7 @@ void avr_callback_run_gdb(avr_t * avr)
 	// Interrupt servicing might change the PC too, during 'sleep'
 	if (avr->state == cpu_Running || avr->state == cpu_Sleeping)
 		avr_service_interrupts(avr);
-	
+
 	// if we were stepping, use this state to inform remote gdb
 	if (step)
 		avr->state = cpu_StepDone;

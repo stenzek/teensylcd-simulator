@@ -182,9 +182,11 @@ avr_twi_write(
 			if (p->state & TWI_COND_START) {
 				avr_raise_irq(p->io.irq + TWI_IRQ_OUTPUT,
 						avr_twi_irq_msg(TWI_COND_STOP, p->peer_addr, 1));
-				avr_regbit_clear(avr, p->twsto);
 			}
 		}
+		/* clear stop condition regardless of status */
+		avr_regbit_clear(avr, p->twsto);
+		_avr_twi_status_set(p, TWI_NO_STATE, 0);
 		p->state = 0;
 	}
 	if (!twsta && avr_regbit_get(avr, p->twsta)) {
@@ -193,9 +195,9 @@ avr_twi_write(
 #endif
 		// generate a start condition
 		if (p->state & TWI_COND_START)
-			_avr_twi_delay_state(p, 3, TWI_REP_START);
+			_avr_twi_delay_state(p, 0, TWI_REP_START);
 		else
-			_avr_twi_delay_state(p, 3, TWI_START);
+			_avr_twi_delay_state(p, 0, TWI_START);
 		p->peer_addr = 0;
 		p->state = TWI_COND_START;
 	}
@@ -285,7 +287,7 @@ avr_twi_write(
 			else
 				AVR_TRACE(avr, "I2C latch is not ready, do nothing\n");
 #endif
-		} else {
+		} else if (p->state) {
 #if AVR_TWI_DEBUG
 			AVR_TRACE(avr, "I2C Master address %02x\n", avr->data[p->r_twdr]);
 #endif
@@ -306,9 +308,15 @@ avr_twi_write(
 						p->state & TWI_COND_ACK ?
 								TWI_MRX_ADR_ACK : TWI_MRX_ADR_NACK);
 			} else {
-				_avr_twi_delay_state(p, 9,
-						p->state & TWI_COND_ACK ?
-								TWI_MTX_ADR_ACK : TWI_MTX_ADR_NACK);
+				if(p->state & TWI_COND_WRITE){
+					_avr_twi_delay_state(p, 0,
+							p->state & TWI_COND_ACK ?
+									TWI_MTX_DATA_ACK : TWI_MTX_DATA_NACK);
+				}else{
+					_avr_twi_delay_state(p, 9,
+							p->state & TWI_COND_ACK ?
+									TWI_MTX_ADR_ACK : TWI_MTX_ADR_NACK);
+				}
 			}
 		}
 		p->state &= ~TWI_COND_WRITE;
@@ -451,6 +459,7 @@ void avr_twi_reset(struct avr_io_t *io)
 	avr_twi_t * p = (avr_twi_t *)io;
 	avr_irq_register_notify(p->io.irq + TWI_IRQ_INPUT, avr_twi_irq_input, p);
 	p->state = p->peer_addr = 0;
+	avr_regbit_setto_raw(p->io.avr, p->twsr, TWI_NO_STATE);
 }
 
 static const char * irq_names[TWI_IRQ_COUNT] = {

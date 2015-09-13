@@ -121,7 +121,7 @@ struct avr_trace_data_t {
 	// code that munches the stack -under- their own frame
 	struct {
 		uint32_t	pc;
-		uint16_t 	sp;		
+		uint16_t 	sp;
 	} stack_frame[STACK_FRAME_SIZE];
 	int			stack_frame_index;
 #endif
@@ -142,7 +142,7 @@ typedef void (*avr_run_t)(
 typedef struct avr_t {
 	const char * mmcu;	// name of the AVR
 	// these are filled by sim_core_declare from constants in /usr/lib/avr/include/avr/io*.h
-	uint16_t 	ramend;		
+	uint16_t 	ramend;
 	uint32_t	flashend;
 	uint32_t	e2end;
 	uint8_t		vector_size;
@@ -151,7 +151,7 @@ typedef struct avr_t {
 	avr_io_addr_t	rampz;	// optional, only for ELPM/SPM on >64Kb cores
 	avr_io_addr_t	eind;	// optional, only for EIJMP/EICALL on >64Kb cores
 	uint8_t		address_size;	// 2, or 3 for cores >128KB in flash
-	
+
 	// filled by the ELF data, this allow tracking of invalid jumps
 	uint32_t			codeend;
 
@@ -179,14 +179,18 @@ typedef struct avr_t {
 
 	// called at init time
 	void (*init)(struct avr_t * avr);
-	// called at init time (for special purposes like using a memory mapped file as flash see: simduino)
-	void (*special_init)(struct avr_t * avr, void * data);
-	// called at termination time ( to clean special initializations)
-	void (*special_deinit)(struct avr_t * avr, void * data);
-    // value passed to special_init() and special_deinit()
-	void *special_data;
 	// called at reset time
 	void (*reset)(struct avr_t * avr);
+
+	struct {
+		// called at init time (for special purposes like using a
+		// memory mapped file as flash see: simduino)
+		void (*init)(struct avr_t * avr, void * data);
+		// called at termination time ( to clean special initializations)
+		void (*deinit)(struct avr_t * avr, void * data);
+		// value passed to init() and deinit()
+		void *data;
+	} custom;
 
 	/*!
 	 * Default AVR core run function.
@@ -220,7 +224,7 @@ typedef struct avr_t {
 		>0: interrupt pending */
 	int8_t		interrupt_state;	// interrupt state
 
-	/* 
+	/*
 	 * ** current PC **
 	 * Note that the PC is representing /bytes/ while the AVR value is
 	 * assumed to be "words". This is in line with what GDB does...
@@ -228,6 +232,11 @@ typedef struct avr_t {
 	 * It CAN be a little confusing, so concentrate, young grasshopper.
 	 */
 	avr_flashaddr_t	pc;
+	/*
+	 * Reset PC, this is the value used to jump to at reset time, this
+	 * allow support for bootloaders
+	 */
+	avr_flashaddr_t	reset_pc;
 
 	/*
 	 * callback when specific IO registers are read/written.
@@ -284,17 +293,17 @@ typedef struct avr_t {
 	// DEBUG ONLY -- value ignored if CONFIG_SIMAVR_TRACE = 0
 	uint8_t	trace : 1,
 			log : 2; // log level, default to 1
-	
+
 	// Only used if CONFIG_SIMAVR_TRACE is defined
 	struct avr_trace_data_t *trace_data;
 
 	// VALUE CHANGE DUMP file (waveforms)
-	// this is the VCD file that gets allocated if the 
+	// this is the VCD file that gets allocated if the
 	// firmware that is loaded explicitly asks for a trace
 	// to be generated, and allocates it's own symbols
 	// using AVR_MMCU_TAG_VCD_TRACE (see avr_mcu_section.h)
 	struct avr_vcd_t * vcd;
-	
+
 	// gdb hooking structure. Only present when gdb server is active
 	struct avr_gdb_t * gdb;
 
@@ -339,7 +348,7 @@ avr_reset(
 int
 avr_run(
 		avr_t * avr);
-// finish any pending operations 
+// finish any pending operations
 void
 avr_terminate(
 		avr_t * avr);
@@ -393,9 +402,9 @@ avr_sadly_crashed(
  */
 void
 avr_global_logger(
-		struct avr_t* avr, 
-		const int level, 
-		const char * format, 
+		struct avr_t* avr,
+		const int level,
+		const char * format,
 		... );
 
 #ifndef AVR_CORE
@@ -428,9 +437,9 @@ void avr_callback_run_raw(avr_t * avr);
  * (low amounts cannot be handled accurately).
  * This function is an utility function for the sleep callbacks
  */
-uint32_t 
+uint32_t
 avr_pending_sleep_usec(
-		avr_t * avr, 
+		avr_t * avr,
 		avr_cycle_count_t howLong);
 
 #ifdef __cplusplus
