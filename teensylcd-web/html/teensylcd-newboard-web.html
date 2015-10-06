@@ -121,8 +121,8 @@
                 </span>
             </div>
             <div class="form-group" style="text-align: center; ">
-                <button class="btn btn-primary" id="SW0-button">SW0</button>
-                <button class="btn btn-primary" id="SW1-button">SW1</button>
+                <button class="btn btn-primary" id="SW2-button">SW2</button>
+                <button class="btn btn-primary" id="SW3-button">SW3</button>
             </div>
             <div id="controls-container" class="panel panel-default">
                 <div class="panel-heading">Controls</div>
@@ -195,10 +195,11 @@
         Module.ccall('set_frequency_change_callback', null, ['number'], [PFNFrequencyChange]);
       }
       function runFirmware(filename) {
+        var new_board = true;
         var frequency = getFrequency();
         var verbose = true;
         var trace = false;
-        Module.ccall('load_firmware', null, ['boolean', 'string', 'number', 'boolean', 'boolean'], [false, filename, frequency, verbose, trace]);
+        Module.ccall('load_firmware', null, ['boolean', 'string', 'number', 'boolean', 'boolean'], [new_board, filename, frequency, verbose, trace]);
       }
       function onFirmwareUpload(evt) {
         var file = evt.target.files[0];
@@ -235,10 +236,10 @@
                                                                         Module.ccall('resume_processor');
                                                                     }}, false);
       
-      document.getElementById('SW0-button').addEventListener('mousedown', function(e) { setButtonState(0, true); }, false);
-      document.getElementById('SW0-button').addEventListener('mouseup', function(e) { setButtonState(0, false); }, false);
-      document.getElementById('SW1-button').addEventListener('mousedown', function(e) { setButtonState(1, true); }, false);
-      document.getElementById('SW1-button').addEventListener('mouseup', function(e) { setButtonState(1, false); }, false);
+      document.getElementById('SW2-button').addEventListener('mousedown', function(e) { setButtonState(2, true); }, false);
+      document.getElementById('SW2-button').addEventListener('mouseup', function(e) { setButtonState(2, false); }, false);
+      document.getElementById('SW3-button').addEventListener('mousedown', function(e) { setButtonState(3, true); }, false);
+      document.getElementById('SW3-button').addEventListener('mouseup', function(e) { setButtonState(3, false); }, false);
       
       var Module = {
         preRun: [],

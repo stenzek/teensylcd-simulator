@@ -50,7 +50,7 @@ void set_frequency_change_callback(void(*fptr)(uint32_t, uint32_t))
 
 /* methods */
 void setup();
-void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool trace_interrupts);
+void load_firmware(bool new_board, uint32_t frequency, const char *filename, bool verbose, bool trace_interrupts);
 void reset_processor();
 void pause_processor();
 void resume_processor();
@@ -71,7 +71,7 @@ void setup()
     EM_ASM("SDL.defaults.copyOnLock = false; SDL.defaults.discardOnLock = true; SDL.defaults.opaqueFrontBuffer = true;");   
 }
 
-void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool trace_interrupts)
+void load_firmware(bool new_board, uint32_t frequency, const char *filename, bool verbose, bool trace_interrupts)
 {
     if (teensy != NULL)
     {
@@ -83,7 +83,18 @@ void load_firmware(const char *filename, uint32_t frequency, bool verbose, bool 
     
     /* create teensy */
     teensy = (struct teensylcd_t *)malloc(sizeof(struct teensylcd_t));
-    if (teensy == NULL || !teensylcd_init(teensy, frequency, LOG_TRACE))
+    if (teensy == NULL) {
+        fprintf(stderr, "malloc(sizeof(struct teensylcd_t)) failed.");
+        return;
+    }
+
+    /* initialize it */
+    bool init_result = false;
+    if (new_board)
+        init_result = teensylcd_init_new(teensy, frequency, LOG_TRACE);
+    else
+        init_result = teensylcd_init(teensy, frequency, LOG_TRACE);
+    if (!init_result)
     {
         fprintf(stderr, "Failed to create teensylcd.\n");
         free(teensy);
@@ -178,15 +189,23 @@ void run_loop()
     
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
         {
-            if (event.key.keysym.scancode == SDL_SCANCODE_Z)
-            {
-                /* push sw0 */
-                teensylcd_set_button_state(teensy, TEENSYLCD_BUTTON_SW0, (event.type == SDL_KEYDOWN));
-            }
-            else if (event.key.keysym.scancode == SDL_SCANCODE_X)
-            {
-                /* push sw1 */
-                teensylcd_set_button_state(teensy, TEENSYLCD_BUTTON_SW1, (event.type == SDL_KEYDOWN));
+            static const int button_mapping[2][] = {
+                { SDL_SCANCODE_Z, TEENSYLCD_BUTTON_SW0 },
+                { SDL_SCANCODE_X, TEENSYLCD_BUTTON_SW1 },
+                { SDL_SCANCODE_C, TEENSYLCD_BUTTON_SW2 },
+                { SDL_SCANCODE_V, TEENSYLCD_BUTTON_SW3 },
+                { SDL_SCANCODE_W, TEENSYLCD_STICK_UP },
+                { SDL_SCANCODE_S, TEENSYLCD_STICK_DOWN },
+                { SDL_SCANCODE_A, TEENSYLCD_STICK_LEFT },
+                { SDL_SCANCODE_D, TEENSYLCD_STICK_RIGHT },
+                { SDL_SCANCODE_F, TEENSYLCD_STICK_PUSH }
+            };
+
+            for (int i = 0; i < sizeof(button_mapping) / sizeof(button_mapping[0]); i++) {
+                if (button_mapping[i][0] == event.key.keysym.scancode) {
+                    teensylcd_set_button_state(teensy, (enum TEENSYLCD_BUTTON)button_mapping[i][1], (event.type == SDL_KEYDOWN));
+                    break;
+                }
             }
         }
     }
@@ -277,7 +296,7 @@ int main(int argc, char *argv[])
     fprintf(stdout, "main()\n");
     setup();
     fprintf(stdout, "setup() done\n");
-    load_firmware("start.hex", TEENSYLCD_DEFAULT_FREQUENCY, true, false);
+    load_firmware(false, TEENSYLCD_DEFAULT_FREQUENCY, "start.hex", true, false);
     fprintf(stdout, "load_firmware() done\n");
     emscripten_set_main_loop(run_loop, 0, 1);
     return 0;
