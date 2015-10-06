@@ -11,10 +11,10 @@
 /* led enumeration */
 enum TEENSYLCD_LED
 {
-	TEENSYLCD_LED0,
-	TEENSYLCD_LED1,
-	TEENSYLCD_LED2,
-	NUM_TEENSYLCD_LEDS
+    TEENSYLCD_LED0,
+    TEENSYLCD_LED1,
+    TEENSYLCD_LED2,
+    NUM_TEENSYLCD_LEDS
 };
 
 /* led change callback */
@@ -31,13 +31,13 @@ enum TEENSYLCD_BUTTON
 /* a simulated teensylcd */
 struct teensylcd_t
 {
-	struct avr_t *avr;
-	struct pcd8544_t lcd;
-	bool led_states[NUM_TEENSYLCD_LEDS];
+    struct avr_t *avr;
+    struct pcd8544_t lcd;
+    bool led_states[NUM_TEENSYLCD_LEDS];
     teensylcd_led_change_callback led_change_callback;
-	bool button_states[NUM_TEENSYLCD_BUTTONS];
-	struct avr_irq_t *button_irqs[NUM_TEENSYLCD_BUTTONS];
-	uint64_t next_cycles_sub;
+    bool button_states[NUM_TEENSYLCD_BUTTONS];
+    struct avr_irq_t *button_irqs[NUM_TEENSYLCD_BUTTONS];
+    uint64_t next_cycles_sub;
 };
 
 /* initializer */
@@ -83,5 +83,5 @@ bool teensylcd_run_until_refresh(struct teensylcd_t *teensy);
 /* cleanup */
 void teensylcd_cleanup(struct teensylcd_t *teensy);
 
-#endif		// __LIBTEENSYLCD_TEENSYLCD_H
+#endif        // __LIBTEENSYLCD_TEENSYLCD_H
 

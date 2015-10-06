@@ -12,41 +12,41 @@
 /* state */
 struct pcd8544_t
 {
-	/* current "raster" position */
-	uint8_t position_x;					/* 0-84 */
-	uint8_t position_y;					/* 0-6, groups of 8 */
-	
-	/* pixel bitmap, one bit for each pixel */
-	uint8_t pixel_state[PCD8544_LCD_X * PCD8544_LCD_Y / 8];
-	
-	/* contrast level or Vop (0-127) */
-	uint8_t contrast;
-	
-	/* changed flag, feel free to reset externally */
-	bool pixels_changed;
-	
-	/* low-level access */
-	
-	/* reset state, TRUE indicates reset pin pulled low */
-	bool reset;
+    /* current "raster" position */
+    uint8_t position_x;                    /* 0-84 */
+    uint8_t position_y;                    /* 0-6, groups of 8 */
+    
+    /* pixel bitmap, one bit for each pixel */
+    uint8_t pixel_state[PCD8544_LCD_X * PCD8544_LCD_Y / 8];
+    
+    /* contrast level or Vop (0-127) */
+    uint8_t contrast;
+    
+    /* changed flag, feel free to reset externally */
+    bool pixels_changed;
+    
+    /* low-level access */
+    
+    /* reset state, TRUE indicates reset pin pulled low */
+    bool reset;
     
     /* chip enable */
     bool chip_enable;
     
     /* current clock (0-7) */
     uint8_t clock_count;
-	
-	/* data transfer shift register */
-	uint8_t data_shift_register;
-	
-	/* data pin level */
-	bool data_pin_value;
-	
-	/* current mode, control or data */
-	bool data_flag;
-	
-	/* whether extended commands are enabled */
-	bool extended_commands;
+    
+    /* data transfer shift register */
+    uint8_t data_shift_register;
+    
+    /* data pin level */
+    bool data_pin_value;
+    
+    /* current mode, control or data */
+    bool data_flag;
+    
+    /* whether extended commands are enabled */
+    bool extended_commands;
     
     /* inverted colours */
     bool invert_display;
