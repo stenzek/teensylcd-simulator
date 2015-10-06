@@ -97,7 +97,7 @@ bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel
     /* hook up leds */
     avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 2), led0_changed_hook, teensy);
     avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 3), led1_changed_hook, teensy);
-    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 6), led2_changed_hook, teensy);
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('D'), 6), led2_changed_hook, teensy);
 
     /* hook up buttons */
     avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW0], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0));
@@ -116,7 +116,7 @@ bool teensylcd_init_new(struct teensylcd_t *teensy, uint32_t frequency, int logl
     /* hook up leds */
     avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 2), led0_changed_hook, teensy);
     avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 3), led1_changed_hook, teensy);
-    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 6), led2_changed_hook, teensy);
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('D'), 6), led2_changed_hook, teensy);
 
     /* hook up buttons */
     avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW2], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('F'), 6));
