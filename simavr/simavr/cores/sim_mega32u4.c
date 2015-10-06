@@ -66,11 +66,6 @@ struct mcu_t {
         .reset = m32u4_reset,
     },
     AVR_CLKPR_DECLARE(16000000, CLKPR),
-//     .clkpr = { 
-//         .base_frequency = 16000000, 
-//         .ioaddr = CLKPR, 
-//         .current_prescale = 0x00
-//     },
     AVR_EEPROM_DECLARE(EE_READY_vect),
     AVR_SELFPROG_DECLARE(SPMCSR, SPMEN, SPM_READY_vect),
     AVR_WATCHDOG_DECLARE(WDTCSR, _VECTOR(0)),
@@ -84,7 +79,15 @@ struct mcu_t {
         //AVR_ASYNC_EXTINT_DECLARE(2, 'B', PB2),
 #endif
     },
-    AVR_IOPORT_DECLARE(b, 'B', B),
+    .portb = {
+        .name = 'B', .r_port = PORTB, .r_ddr = DDRB, .r_pin = PINB,
+        .pcint = {
+            .enable = AVR_IO_REGBIT(PCICR, PCIE0),
+            .raised = AVR_IO_REGBIT(PCIFR, PCIF0),
+            .vector = PCINT0_vect
+        },
+        .r_pcint = PCMSK0
+    },
     AVR_IOPORT_DECLARE(c, 'C', C),
     AVR_IOPORT_DECLARE(d, 'D', D),
     AVR_IOPORT_DECLARE(f, 'F', F),
