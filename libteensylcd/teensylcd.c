@@ -10,7 +10,10 @@
 #include <assert.h>
 #include <string.h>
 
-static const char *button_names[NUM_TEENSYLCD_BUTTONS] = { "teensylcd.sw0", "teensylcd.sw1" };
+static const char *button_names[NUM_TEENSYLCD_BUTTONS] = { 
+    "teensylcd.sw0", "teensylcd.sw1", "teensylcd.sw2", "teensylcd.sw3"
+    "teensylcd.stickup", "teensylcd.stickdown", "teensylcd.stickleft", "teensylcd.stickright", "teensylcd.stickpush"
+};
 
 /* led change hooks */
 
@@ -53,7 +56,7 @@ static avr_cycle_count_t button_auto_release(avr_t *avr, avr_cycle_count_t when,
     return 0;
 }
 
-bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel)
+static bool teensylcd_init_common(struct teensylcd_t *teensy, uint32_t frequency, int loglevel)
 {
     /* create mcu */
     teensy->avr = avr_make_mcu_by_name("atmega32u4");
@@ -68,24 +71,62 @@ bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel
     teensy->avr->frequency = frequency;
     teensy->avr->log = loglevel;
     teensy->avr->trace = (loglevel >= LOG_TRACE);
-    
-    /* hook up leds */
-    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 2), led0_changed_hook, teensy);
-    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 3), led1_changed_hook, teensy);
-    //LED2
-    memset(teensy->led_states, 0, sizeof(teensy->led_states));
     teensy->led_change_callback = NULL;
-    
-    /* hook up buttons */
-    teensy->button_irqs[TEENSYLCD_BUTTON_SW0] = avr_alloc_irq(&teensy->avr->irq_pool, 0, 1, &button_names[TEENSYLCD_BUTTON_SW0]);
-    teensy->button_irqs[TEENSYLCD_BUTTON_SW1] = avr_alloc_irq(&teensy->avr->irq_pool, 0, 1, &button_names[TEENSYLCD_BUTTON_SW1]);
-    avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW0], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0));
-    avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW1], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 1));
+    memset(teensy->led_states, 0, sizeof(teensy->led_states));
     memset(teensy->button_states, 0, sizeof(teensy->button_states));
     
     /* hook up lcd */
     pcd8544_init(teensy->avr, &teensy->lcd);
+
+    /* initialize button irqs - replace with single allocation? */
+    for (int i = 0; i < NUM_TEENSYLCD_BUTTONS; i++) {
+        teensy->button_irqs[i] = avr_alloc_irq(&teensy->avr->irq_pool, 0, 1, &button_names[i]);
+    }
+
     printf("TeensyLCD initialized. Frequency = %uhz\n", teensy->avr->frequency);
+    return true;
+}
+
+bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel)
+{
+    if (!teensylcd_init_common(teensy, frequency, loglevel))
+        return false;
+
+    printf("Using old teensylcd pinout.\n");
+
+    /* hook up leds */
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 2), led0_changed_hook, teensy);
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 3), led1_changed_hook, teensy);
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 6), led2_changed_hook, teensy);
+
+    /* hook up buttons */
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW0], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0));
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW1], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 1));
+
+    return true;
+}
+
+bool teensylcd_init_new(struct teensylcd_t *teensy, uint32_t frequency, int loglevel)
+{
+    if (!teensylcd_init_common(teensy, frequency, loglevel))
+        return false;
+
+    printf("Using new teensylcd pinout.\n");
+    
+    /* hook up leds */
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 2), led0_changed_hook, teensy);
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 3), led1_changed_hook, teensy);
+    avr_irq_register_notify(avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 6), led2_changed_hook, teensy);
+
+    /* hook up buttons */
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW2], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('F'), 6));
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_BUTTON_SW3], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('F'), 5));
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_STICK_UP], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 1));      // ???
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_STICK_DOWN], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('D'), 0));    // ???
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_STICK_LEFT], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('D'), 1));    // ???
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_STICK_RIGHT], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('D'), 2));   // ???
+    avr_connect_irq(teensy->button_irqs[TEENSYLCD_STICK_PUSH], avr_io_getirq(teensy->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0));
+
     return true;
 }
 

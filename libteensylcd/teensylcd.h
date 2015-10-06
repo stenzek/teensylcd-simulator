@@ -25,6 +25,13 @@ enum TEENSYLCD_BUTTON
 {
     TEENSYLCD_BUTTON_SW0,
     TEENSYLCD_BUTTON_SW1,
+    TEENSYLCD_BUTTON_SW2,
+    TEENSYLCD_BUTTON_SW3,
+    TEENSYLCD_STICK_UP,
+    TEENSYLCD_STICK_DOWN,
+    TEENSYLCD_STICK_LEFT,
+    TEENSYLCD_STICK_RIGHT,
+    TEENSYLCD_STICK_PUSH,
     NUM_TEENSYLCD_BUTTONS
 };
 
@@ -42,6 +49,7 @@ struct teensylcd_t
 
 /* initializer */
 bool teensylcd_init(struct teensylcd_t *teensy, uint32_t frequency, int loglevel);
+bool teensylcd_init_new(struct teensylcd_t *teensy, uint32_t frequency, int loglevel);
 
 /* reset the processor, keeping firmware loaded */
 void teensylcd_reset(struct teensylcd_t *teensy);
