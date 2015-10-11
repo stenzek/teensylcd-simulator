@@ -279,6 +279,17 @@ struct mcu_t {
                     .vector = TIMER1_COMPB_vect,
                 },
             },
+            [AVR_TIMER_COMPC] = {
+                .r_ocr = OCR1CL,
+                .r_ocrh = OCR1CH,
+                .com = AVR_IO_REGBITS(TCCR1A, COM1B0, 0x3),
+                .com_pin = AVR_IO_REGBIT(PORTB, PORTB6),
+                .interrupt = {
+                    .enable = AVR_IO_REGBIT(TIMSK1, OCIE1C),
+                    .raised = AVR_IO_REGBIT(TIFR1, OCF1C),
+                    .vector = TIMER1_COMPC_vect,
+                },
+            },
         },
 
     },
@@ -339,6 +350,17 @@ struct mcu_t {
                     .vector = TIMER3_COMPB_vect,
                 },
             },
+            [AVR_TIMER_COMPC] = {
+                .r_ocr = OCR3CL,
+                .r_ocrh = OCR3CH,
+                .com = AVR_IO_REGBITS(TCCR3A, COM3C0, 0x3),
+                .com_pin = AVR_IO_REGBIT(PORTB, PORTB6),
+                .interrupt = {
+                    .enable = AVR_IO_REGBIT(TIMSK3, OCIE3C),
+                    .raised = AVR_IO_REGBIT(TIFR3, OCF3C),
+                    .vector = TIMER3_COMPC_vect,
+                },
+            },
         },
     },
     .timer4 = {
@@ -382,7 +404,7 @@ struct mcu_t {
                     .vector = TIMER4_COMPB_vect,
                 },
             },
-            /*[AVR_TIMER_COMPD] = {     // COMPD is missing, add me
+            [AVR_TIMER_COMPD] = {
                 .r_ocr = OCR4D,
                 .com = AVR_IO_REGBITS(TCCR4D, COM4D0, 0x3),
                 .com_pin = AVR_IO_REGBIT(PORTB, PORTB7), // check this
@@ -391,7 +413,7 @@ struct mcu_t {
                     .raised = AVR_IO_REGBIT(TIFR4, OCF4D),
                     .vector = TIMER4_COMPD_vect,
                 },
-            },*/
+            },
         },
     },
     AVR_SPI_DECLARE(0, 0),
