@@ -131,6 +131,8 @@ avr_raise_interrupt(
 
 	// If the interrupt is enabled, attempt to wake the core
 	if (avr_regbit_get(avr, vector->enable)) {
+        AVR_TRACER_EVENT(avr, avr_tracer_event_interrupt, vector->vector, 0, 0, 0);
+
 		// Mark the interrupt as pending
 		vector->pending = 1;
 

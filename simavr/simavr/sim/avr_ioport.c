@@ -110,6 +110,9 @@ avr_ioport_ddr_write(
 {
 	avr_ioport_t * p = (avr_ioport_t *)param;
 
+	if (avr->data[addr] != v)
+        AVR_TRACER_EVENT(avr, avr_tracer_event_ddr, p->name, avr->data[addr], v, 0);
+
 	D(if (avr->data[addr] != v) printf("** DDR%c(%02x) = %02x\r\n", p->name, addr, v);)
 	avr_raise_irq(p->io.irq + IOPORT_IRQ_DIRECTION_ALL, v);
 	avr_core_watch_write(avr, addr, v);
@@ -134,6 +137,10 @@ avr_ioport_irq_notify(
 	int output = value & AVR_IOPORT_OUTPUT;
 	value &= 0xff;
 	uint8_t mask = 1 << irq->irq;
+
+    if ((avr->data[p->r_pin] & mask) != (value & mask))
+        AVR_TRACER_EVENT(avr, avr_tracer_event_ioport, p->name, (avr->data[p->r_pin] >> irq->irq) & 1, (value & 1), 0);
+
 		// set the real PIN bit. ddr doesn't matter here as it's masked when read.
 	avr->data[p->r_pin] &= ~mask;
 	if (value)

@@ -29,6 +29,7 @@ extern "C" {
 #include "sim_irq.h"
 #include "sim_interrupts.h"
 #include "sim_cycle_timers.h"
+#include "sim_tracer.h"
 
 typedef uint32_t avr_flashaddr_t;
 
@@ -311,6 +312,10 @@ typedef struct avr_t {
 	// crashed even if not activated at startup
 	// if zero, the simulator will just exit() in case of a crash
 	int		gdb_port;
+
+    // tracer
+    avr_tracer_callback_t tracer_callback;
+    void *tracer_callback_param;
 } avr_t;
 
 

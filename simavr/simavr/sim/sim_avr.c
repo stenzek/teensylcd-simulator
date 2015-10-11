@@ -93,6 +93,8 @@ int avr_init(avr_t * avr)
 	// number of address bytes to push/pull on/off the stack
 	avr->address_size = avr->eind ? 3 : 2;
 	avr->log = 1;
+    avr->tracer_callback = NULL;
+    avr->tracer_callback_param = NULL;
 	avr_reset(avr);
 	return 0;
 }
