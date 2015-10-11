@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -10,28 +10,28 @@
             text-align: center;
             display: block;
         }
-       
+
         #display-container {
             text-align: center;
         }
-        
+
         .led-container {
             display: inline-block;
             vertical-align: top;
             margin: 10px;
         }
-        
+
         .led {
             width: 20px;
             height: 20px;
             background-color: black;
             display: block;
         }
-        
+
         .led-on {
             background-color: red;
         }
-        
+
         #lcd {
             border: 0px none;
             width: 84px;
@@ -42,58 +42,92 @@
             -ms-interpolation-mode: nearest-neighbor; /* IE */
             display: inline-block;
         }
-        
+
         @media (min-width: 400px) {
-            .led { width: 16px; height: 16px; }
-            #lcd { width: 252px; height: 144px; }
+            .led {
+                width: 16px;
+                height: 16px;
+            }
+
+            #lcd {
+                width: 252px;
+                height: 144px;
+            }
         }
-        
+
         @media (min-width: 500px) {
-            .led { width: 24px; height: 24px; }
-            #lcd { width: 336px; height: 192px; }
+            .led {
+                width: 24px;
+                height: 24px;
+            }
+
+            #lcd {
+                width: 336px;
+                height: 192px;
+            }
         }
-        
+
         @media (min-width: 600px) {
-            .led { width: 32px; height: 32px; }
-            #lcd { width: 420px; height: 240px; }
+            .led {
+                width: 32px;
+                height: 32px;
+            }
+
+            #lcd {
+                width: 420px;
+                height: 240px;
+            }
         }
-        
+
         @media (min-width: 800px) {
-            .led { width: 48px; height: 48px; }
-            #lcd { width: 504px; height: 288px; }
+            .led {
+                width: 48px;
+                height: 48px;
+            }
+
+            #lcd {
+                width: 504px;
+                height: 288px;
+            }
         }
-        
+
         @media (min-width: 1200px) {
-            .led { width: 64px; height: 64px; }
-            #lcd { width: 840px; height: 480px; }
+            .led {
+                width: 64px;
+                height: 64px;
+            }
+
+            #lcd {
+                width: 840px;
+                height: 480px;
+            }
         }
-        
+
         #controls-container {
             /*border: 1px solid #CCC;
             border-radius: 4px;*/
         }
-        
+
         .controls {
             /*text-align: center;*/
             /*margin: 0 auto;*/
         }
-        
-        .controls input[type=file] {
-            /*border: 1px solid #CCC;
+
+            .controls input[type=file] {
+                /*border: 1px solid #CCC;
             border-radius: 4px;*/
-        }
-        
-        .controls select {
-            width: 150px;
-        }
-        
+            }
+
+            .controls select {
+                width: 150px;
+            }
+
         #output {
             font-family: 'Lucida Console', Monaco, monospace;
             font-size: 12px;
             padding: 4px;
             resize: none;
         }
-
     </style>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/bootstrap-theme.min.css">
@@ -103,11 +137,11 @@
         <div class="page-header" style="margin-top: 10px;">
             <h3>TeensyLCD Web Simulator</h3>
         </div>
-        
+
         <div id="status">
             Downloading...
         </div>
-        
+
         <div id="app-container" style="display: none; ">
             <div id="display-container">
                 <span class="led-container">
@@ -141,6 +175,10 @@
                         </select>
                     </div>
                     <div class="form-group controls">
+                        <label><input type="checkbox" class="checkbox-inline" id="tracer-ioports" onchange="updateTracerMessageEnabled()" />Trace IO Ports</label><br />
+                        <label><input type="checkbox" class="checkbox-inline" id="tracer-interrupts" onchange="updateTracerMessageEnabled()" />Trace Interrupts</label>
+                    </div>
+                    <div class="form-group controls">
                         <label for="reset">MCU Control:</label><br />
                         <button class="btn btn-warning" id="pause" style="padding: 6px 16px; ">Pause</button>
                         <button class="btn btn-danger" id="reset" style="padding: 6px 16px; ">Reset</button>
@@ -153,152 +191,159 @@
             </div>
         </div>
     </div> <!-- container -->
-    
+
     <script type="text/javascript">
         // set default frequency
         document.getElementById('frequency').value = 16000000;
-        
-      function onLEDChange(index, value) {
-        //console.log('led change ' + index + ' ' + value);
-        
-        var elem = null;
-        if (index == 0)
-            elem = $('#led0');
-        else if (index == 1)
-            elem = $('#led1');
-        
-        if (elem != null) {
-            if (value != 0)
-                elem.addClass("led-on");
-            else
-                elem.removeClass("led-on");
-        }
-      }
-      function onFrequencyChange(oldFrequency, newFrequency) {
-        console.log("frequency change callback: oldFrequency:" + oldFrequency + ", newFrequency: " + newFrequency);
-        document.getElementById('frequency').value = newFrequency;
-      }
-      function setButtonState(button, enabled) {
-        Module.ccall('set_button_state', null, ['number', 'boolean'], [button, enabled]);
-      }
-      function getFrequency() {
-        return parseInt(document.getElementById('frequency').value);
-      }
-      function setFrequency(frequency) {
-        Module.ccall('set_processor_frequency', null, ['number'], [frequency]);
-      }
-      function onBoot() {
-        // hook up led callback
-        var PFNLEDChange = Runtime.addFunction(onLEDChange);
-        var PFNFrequencyChange = Runtime.addFunction(onFrequencyChange);
-        Module.ccall('set_led_change_callback', null, ['number'], [PFNLEDChange]);
-        Module.ccall('set_frequency_change_callback', null, ['number'], [PFNFrequencyChange]);
-      }
-      function runFirmware(filename) {
-        var frequency = getFrequency();
-        var verbose = true;
-        var trace = false;
-        Module.ccall('load_firmware', null, ['boolean', 'string', 'number', 'boolean', 'boolean'], [false, filename, frequency, verbose, trace]);
-      }
-      function onFirmwareUpload(evt) {
-        var file = evt.target.files[0];
-        console.log(file.name);
-        
-        var fileReader = new FileReader();
-        fileReader.onload = (function(theFile) {
-            return function(e) {
-                // this'll leak over time as we add files.. ehh.
-                var filename = '/' + file.name;
-                try {
-                    FS.unlink(file.name);
-                } catch (e) {
-                }
-                try {
-                    FS.createDataFile('/', file.name, e.target.result, true, false);
-                } catch (e) {
-                }
-                runFirmware(filename);
-            };
-        })(file);
-        
-        fileReader.readAsBinaryString(file);
-      }
-      document.getElementById('firmware').addEventListener('change', onFirmwareUpload, false);
-      document.getElementById('frequency').addEventListener('change', function(e) { setFrequency(getFrequency()); }, false);
-      document.getElementById('reset').addEventListener('click', function(e) { Module.ccall('reset_processor', null, [], []); }, false);
-      document.getElementById('pause').addEventListener('click', function(e) { 
-                                                                    if (this.innerHTML == 'Pause') {
-                                                                        this.innerHTML = 'Resume';
-                                                                        Module.ccall('pause_processor');
-                                                                    } else {
-                                                                        this.innerHTML = 'Pause';
-                                                                        Module.ccall('resume_processor');
-                                                                    }}, false);
-      
-      document.getElementById('SW0-button').addEventListener('mousedown', function(e) { setButtonState(0, true); }, false);
-      document.getElementById('SW0-button').addEventListener('mouseup', function(e) { setButtonState(0, false); }, false);
-      document.getElementById('SW1-button').addEventListener('mousedown', function(e) { setButtonState(1, true); }, false);
-      document.getElementById('SW1-button').addEventListener('mouseup', function(e) { setButtonState(1, false); }, false);
-      
-      var Module = {
-        preRun: [],
-        postRun: [onBoot],
-        print: (function() {
-          var element = document.getElementById('output');
-          if (element) element.innerHTML = ''; // clear browser cache
-          return function(text) {
-            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-            // These replacements are necessary if you render to raw HTML
-            text = text.replace(/&/g, "&amp;");
-            text = text.replace(/</g, "&lt;");
-            text = text.replace(/>/g, "&gt;");
-            text = text.replace('\n', '<br>', 'g');
-            console.log(text);
-            if (element) {
-              element.innerHTML += text + "\n";
-              element.scrollTop = element.scrollHeight; // focus on bottom
+
+        function onLEDChange(index, value) {
+            //console.log('led change ' + index + ' ' + value);
+
+            var elem = null;
+            if (index == 0)
+                elem = $('#led0');
+            else if (index == 1)
+                elem = $('#led1');
+
+            if (elem != null) {
+                if (value != 0)
+                    elem.addClass("led-on");
+                else
+                    elem.removeClass("led-on");
             }
-          };
-        })(),
-        printErr: function(text) {
-          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-          if (0) { // XXX disabled for safety typeof dump == 'function') {
-            dump(text + '\n'); // fast, straight to the real console
-          } else {
-            console.error(text);
-          }
-        },
-        canvas: (function() {
-          var canvas = document.getElementById('lcd');
-          return canvas;
-        })(),
-        setStatus: function(text) {
-            var statusElement = document.getElementById('status');
-            statusElement.innerHTML = text;
-            console.log(text);
-        },
-        totalDependencies: 0,
-        monitorRunDependencies: function(left) {
-          this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-          if (left == 0) {
-            $('#status').css("display", "none");
-            $('#app-container').css("display", "block");
-          }
         }
-      };
-      Module.setStatus('Downloading...');
-      window.onerror = function(event) {
-        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-        Module.setStatus('Exception thrown, see JavaScript console');
-        Module.setStatus = function(text) {
-          if (text) Module.printErr('[post-exception status] ' + text);
+        function onFrequencyChange(oldFrequency, newFrequency) {
+            console.log("frequency change callback: oldFrequency:" + oldFrequency + ", newFrequency: " + newFrequency);
+            document.getElementById('frequency').value = newFrequency;
+        }
+        function setButtonState(button, enabled) {
+            Module.ccall('set_button_state', null, ['number', 'boolean'], [button, enabled]);
+        }
+        function getFrequency() {
+            return parseInt(document.getElementById('frequency').value);
+        }
+        function setFrequency(frequency) {
+            Module.ccall('set_processor_frequency', null, ['number'], [frequency]);
+        }
+        function updateTracerMessageEnabled() {
+            var trace_ioports = $("#tracer-ioports").is(":checked");
+            var trace_interrupts = $("#tracer-interrupts").is(":checked");
+            Module.ccall('set_tracer_messages', null, ['boolean', 'boolean'], [trace_ioports, trace_interrupts]);
+        }
+        function onBoot() {
+            // hook up led callback
+            var PFNLEDChange = Runtime.addFunction(onLEDChange);
+            var PFNFrequencyChange = Runtime.addFunction(onFrequencyChange);
+            Module.ccall('set_led_change_callback', null, ['number'], [PFNLEDChange]);
+            Module.ccall('set_frequency_change_callback', null, ['number'], [PFNFrequencyChange]);
+            updateTracerMessageEnabled();
+        }
+        function runFirmware(filename) {
+            var frequency = getFrequency();
+            var verbose = true;
+            var trace = false;
+            Module.ccall('load_firmware', null, ['boolean', 'string', 'number', 'boolean', 'boolean'], [false, filename, frequency, verbose, trace]);
+        }
+        function onFirmwareUpload(evt) {
+            var file = evt.target.files[0];
+            console.log(file.name);
+
+            var fileReader = new FileReader();
+            fileReader.onload = (function (theFile) {
+                return function (e) {
+                    // this'll leak over time as we add files.. ehh.
+                    var filename = '/' + file.name;
+                    try {
+                        FS.unlink(file.name);
+                    } catch (e) {
+                    }
+                    try {
+                        FS.createDataFile('/', file.name, e.target.result, true, false);
+                    } catch (e) {
+                    }
+                    runFirmware(filename);
+                };
+            })(file);
+
+            fileReader.readAsBinaryString(file);
+        }
+        document.getElementById('firmware').addEventListener('change', onFirmwareUpload, false);
+        document.getElementById('frequency').addEventListener('change', function (e) { setFrequency(getFrequency()); }, false);
+        document.getElementById('reset').addEventListener('click', function (e) { Module.ccall('reset_processor', null, [], []); }, false);
+        document.getElementById('pause').addEventListener('click', function (e) {
+            if (this.innerHTML == 'Pause') {
+                this.innerHTML = 'Resume';
+                Module.ccall('pause_processor');
+            } else {
+                this.innerHTML = 'Pause';
+                Module.ccall('resume_processor');
+            }
+        }, false);
+
+        document.getElementById('SW0-button').addEventListener('mousedown', function (e) { setButtonState(0, true); }, false);
+        document.getElementById('SW0-button').addEventListener('mouseup', function (e) { setButtonState(0, false); }, false);
+        document.getElementById('SW1-button').addEventListener('mousedown', function (e) { setButtonState(1, true); }, false);
+        document.getElementById('SW1-button').addEventListener('mouseup', function (e) { setButtonState(1, false); }, false);
+
+        var Module = {
+            preRun: [],
+            postRun: [onBoot],
+            print: (function () {
+                var element = document.getElementById('output');
+                if (element) element.innerHTML = ''; // clear browser cache
+                return function (text) {
+                    if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                    // These replacements are necessary if you render to raw HTML
+                    text = text.replace(/&/g, "&amp;");
+                    text = text.replace(/</g, "&lt;");
+                    text = text.replace(/>/g, "&gt;");
+                    text = text.replace('\n', '<br>', 'g');
+                    console.log(text);
+                    if (element) {
+                        element.innerHTML += text + "\n";
+                        element.scrollTop = element.scrollHeight; // focus on bottom
+                    }
+                };
+            })(),
+            printErr: function (text) {
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                if (0) { // XXX disabled for safety typeof dump == 'function') {
+                    dump(text + '\n'); // fast, straight to the real console
+                } else {
+                    console.error(text);
+                }
+            },
+            canvas: (function () {
+                var canvas = document.getElementById('lcd');
+                return canvas;
+            })(),
+            setStatus: function (text) {
+                var statusElement = document.getElementById('status');
+                statusElement.innerHTML = text;
+                console.log(text);
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function (left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+                if (left == 0) {
+                    $('#status').css("display", "none");
+                    $('#app-container').css("display", "block");
+                }
+            }
         };
-      };
+        Module.setStatus('Downloading...');
+        window.onerror = function (event) {
+            // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+            Module.setStatus('Exception thrown, see JavaScript console');
+            Module.setStatus = function (text) {
+                if (text) Module.printErr('[post-exception status] ' + text);
+            };
+        };
     </script>
     <script type="text/javascript" src="teensylcd-web-preload.js"></script>
     <script async type="text/javascript" src="teensylcd-web.js"></script>
     <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
-  </body>
+</body>
 </html>

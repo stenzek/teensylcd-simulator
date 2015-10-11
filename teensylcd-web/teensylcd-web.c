@@ -48,6 +48,56 @@ void set_frequency_change_callback(void(*fptr)(uint32_t, uint32_t))
     frequency_change_callback = fptr;
 }
 
+static bool enable_trace_ioports = false;
+static bool enable_trace_interrupts = false;
+
+static void tracer_event_callback(struct avr_t *avr, void *param, avr_tracer_event event, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
+{
+    // filter out LCD-related events
+    if (teensylcd_is_lcd_tracer_event(event, p1, p2, p3, p4))
+        return;
+
+    switch (event)
+    {
+    case avr_tracer_event_ioport:
+        {
+            if (!enable_trace_ioports)
+                return;
+
+            printf("TRACE: PIN%c BIT %u %u -> %u\n", p1, p2, p3, p4);
+            break;
+        }
+
+    case avr_tracer_event_ddr:
+        {
+            if (!enable_trace_ioports)
+                return;
+
+            printf("TRACE: DDR%c 0x%02X -> 0x%02X (0b%u%u%u%u%u%u%u%u)\n", p1, p2, p3, (p3>>7)&1, (p3>>6)&1, (p3>>5)&1, (p3>>4)&1, (p3>>3)&1, (p3>>2)&1, (p3>>1)&1, p3&1);
+            break;
+        }
+
+    case avr_tracer_event_interrupt:
+        {
+            if (!enable_trace_interrupts)
+                return;
+
+            // in datasheets interrupt vectors are one-based not zero-based
+            printf("TRACE: interrupt %u fired\n", p1 + 1);
+            break;
+        }
+    }
+}
+
+void set_tracer_messages(bool ioports, bool interrupts)
+{
+    enable_trace_ioports = ioports;
+    enable_trace_interrupts = interrupts;
+
+    printf("Trace ioports: %s\n", (ioports) ? "on" : "off");
+    printf("Trace interrupts: %s\n", (interrupts) ? "on" : "off");
+}
+
 /* methods */
 void setup();
 void load_firmware(bool new_board, uint32_t frequency, const char *filename, bool verbose, bool trace_interrupts);
@@ -115,6 +165,9 @@ void load_firmware(bool new_board, uint32_t frequency, const char *filename, boo
         for (int vi = 0; vi < teensy->avr->interrupts.vector_count; vi++)
             teensy->avr->interrupts.vector[vi]->trace = 1;
     }
+
+    /* tracer */
+    teensy->avr->tracer_callback = tracer_event_callback;
 
     // parse firmware
     if (strstr(filename, ".elf") != NULL)
@@ -189,7 +242,7 @@ void run_loop()
     
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
         {
-            static const int button_mapping[2][] = {
+            static const int button_mapping[][2] = {
                 { SDL_SCANCODE_Z, TEENSYLCD_BUTTON_SW0 },
                 { SDL_SCANCODE_X, TEENSYLCD_BUTTON_SW1 },
                 { SDL_SCANCODE_C, TEENSYLCD_BUTTON_SW2 },
