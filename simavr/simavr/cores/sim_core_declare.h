@@ -42,6 +42,7 @@
  */
 #ifdef SIGNATURE_0
 #define DEFAULT_CORE(_vector_size) \
+    .ramstart = RAMSTART, \
 	.ramend = RAMEND, \
 	.flashend = FLASHEND, \
 	.e2end = E2END, \
@@ -51,6 +52,7 @@
 #else
 // Disable signature when using an old avr toolchain
 #define DEFAULT_CORE(_vector_size) \
+    .ramstart = RAMSTART, \
 	.ramend = RAMEND, \
 	.flashend = FLASHEND, \
 	.e2end = E2END, \

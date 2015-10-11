@@ -72,7 +72,13 @@ int avr_init(avr_t * avr)
 	memset(avr->flash, 0xff, avr->flashend + 1);
 	avr->codeend = avr->flashend;
 	avr->data = malloc(avr->ramend + 1);
-	memset(avr->data, 0, avr->ramend + 1);
+	//memset(avr->data, 0, avr->ramend + 1);
+
+    // Initialize registers to zero and SRAM to all ones.
+    // Seems to be the way the real hardware behaves.
+    memset(avr->data, 0, avr->ramstart);
+    memset(avr->data + avr->ramstart, 0xFF, avr->ramend - avr->ramstart + 1);
+
 #ifdef CONFIG_SIMAVR_TRACE
 	avr->trace_data = calloc(1, sizeof(struct avr_trace_data_t));
 #endif
@@ -120,12 +126,13 @@ void avr_terminate(avr_t * avr)
 
 void avr_reset(avr_t * avr)
 {
-	int noof_ios = MAX_IOs > avr->ramend ? avr->ramend : avr->ramend;
 	AVR_LOG(avr, LOG_TRACE, "%s reset\n", avr->mmcu);
 
 	avr->state = cpu_Running;
-	for(int i = 0x20; i < noof_ios; i++)
-		avr->data[i] = 0;
+
+    // initialize IO registers to zero (GPRs are left? is this correct behaviour?)
+    for (int i = 32; i < avr->ramstart; i++)
+        avr->data[i] = 0;
 	_avr_sp_set(avr, avr->ramend);
 	avr->pc = avr->reset_pc;	// Likely to be zero
 	for (int i = 0; i < 8; i++)
