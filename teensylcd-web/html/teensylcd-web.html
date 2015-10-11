@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -162,7 +162,7 @@
                 <div class="panel-heading">Controls</div>
                 <div class="panel-body">
                     <div class="row">
-                        <div class="col-sm-6">
+                        <div class="col-xs-6">
                             <div class="form-group controls">
                                 <label for="firmware">Firmware upload:</label>
                                 <input type="file" id="firmware"></input>
@@ -177,7 +177,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-xs-6">
                             <div class="form-group controls">
                                 <label><input type="checkbox" class="checkbox-inline" id="tracer-ioports" onchange="updateTracerMessageEnabled()" />Trace IO Ports</label><br />
                                 <label><input type="checkbox" class="checkbox-inline" id="tracer-interrupts" onchange="updateTracerMessageEnabled()" />Trace Interrupts</label>
@@ -254,15 +254,12 @@
         function onFirmwareUpload(evt) {
             var file = evt.target.files[0];
             console.log(file.name);
-            alert(file.name);
 
             var fileReader = new FileReader();
             fileReader.onload = (function (theFile) {
                 return function (e) {
                     // this'll leak over time as we add files.. ehh.
                     var filename = '/' + file.name;
-                    console.log('creating ' + filename);
-                    alert('bar');
                     try {
                         FS.unlink(file.name);
                     } catch (e) {
@@ -272,7 +269,6 @@
                     } catch (e) {
                     }
                     runFirmware(filename);
-                    alert('potato');
                 };
             })(file);
 
