@@ -138,8 +138,7 @@ avr_ioport_irq_notify(
 	value &= 0xff;
 	uint8_t mask = 1 << irq->irq;
 
-    if ((avr->data[p->r_pin] & mask) != (value & mask))
-        AVR_TRACER_EVENT(avr, avr_tracer_event_ioport, p->name, (avr->data[p->r_pin] >> irq->irq) & 1, (value & 1), 0);
+    AVR_TRACER_EVENT(avr, avr_tracer_event_ioport, p->name, irq->irq, (avr->data[p->r_pin] >> irq->irq) & 1, (value & 1));
 
 		// set the real PIN bit. ddr doesn't matter here as it's masked when read.
 	avr->data[p->r_pin] &= ~mask;
