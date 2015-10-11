@@ -223,9 +223,9 @@ struct mcu_t {
                     AVR_IO_REGBIT(TCCR1B, WGM12), AVR_IO_REGBIT(TCCR1B, WGM13) },
         .wgm_op = {
             [0] = AVR_TIMER_WGM_NORMAL16(),
-            // TODO: 1 PWM phase correct 8bit
-            //          2 PWM phase correct 9bit
-            //       3 PWM phase correct 10bit
+            [1] = AVR_TIMER_WGM_PCPWM8(),
+            [2] = AVR_TIMER_WGM_PCPWM9(),
+            [3] = AVR_TIMER_WGM_PCPWM10(),
             [4] = AVR_TIMER_WGM_CTC(),
             [5] = AVR_TIMER_WGM_FASTPWM8(),
             [6] = AVR_TIMER_WGM_FASTPWM9(),
@@ -299,9 +299,9 @@ struct mcu_t {
                     AVR_IO_REGBIT(TCCR3B, WGM32), AVR_IO_REGBIT(TCCR3B, WGM33) },
         .wgm_op = {
             [0] = AVR_TIMER_WGM_NORMAL16(),
-            // TODO: 1 PWM phase correct 8bit
-            //       2 PWM phase correct 9bit
-            //       3 PWM phase correct 10bit
+            [1] = AVR_TIMER_WGM_PCPWM8(),
+            [2] = AVR_TIMER_WGM_PCPWM9(),
+            [3] = AVR_TIMER_WGM_PCPWM10(),
             [4] = AVR_TIMER_WGM_CTC(),
             [5] = AVR_TIMER_WGM_FASTPWM8(),
             [6] = AVR_TIMER_WGM_FASTPWM9(),
