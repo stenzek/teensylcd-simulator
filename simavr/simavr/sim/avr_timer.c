@@ -113,9 +113,21 @@ static avr_cycle_count_t avr_timer_compa(struct avr_t * avr, avr_cycle_count_t w
 	return avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPA);
 }
 
+static avr_cycle_count_t avr_timer_compa_down(struct avr_t * avr, avr_cycle_count_t when, void * param)
+{
+	avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPA);
+    return 0;
+}
+
 static avr_cycle_count_t avr_timer_compb(struct avr_t * avr, avr_cycle_count_t when, void * param)
 {
 	return avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPB);
+}
+
+static avr_cycle_count_t avr_timer_compb_down(struct avr_t * avr, avr_cycle_count_t when, void * param)
+{
+	avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPB);
+    return 0;
 }
 
 static avr_cycle_count_t avr_timer_compc(struct avr_t * avr, avr_cycle_count_t when, void * param)
@@ -123,9 +135,21 @@ static avr_cycle_count_t avr_timer_compc(struct avr_t * avr, avr_cycle_count_t w
 	return avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPC);
 }
 
+static avr_cycle_count_t avr_timer_compc_down(struct avr_t * avr, avr_cycle_count_t when, void * param)
+{
+    avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPC);
+    return 0;
+}
+
 static avr_cycle_count_t avr_timer_compd(struct avr_t * avr, avr_cycle_count_t when, void * param)
 {
 	return avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPD);
+}
+
+static avr_cycle_count_t avr_timer_compd_down(struct avr_t * avr, avr_cycle_count_t when, void * param)
+{
+	avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPD);
+    return 0;
 }
 
 // timer overflow
@@ -140,6 +164,8 @@ static avr_cycle_count_t avr_timer_tov(struct avr_t * avr, avr_cycle_count_t whe
 
 	static const avr_cycle_timer_t dispatch[AVR_TIMER_COMP_COUNT] =
 		{ avr_timer_compa, avr_timer_compb, avr_timer_compc, avr_timer_compd };
+	static const avr_cycle_timer_t dispatchdown[AVR_TIMER_COMP_COUNT] =
+		{ avr_timer_compa_down, avr_timer_compb_down, avr_timer_compc_down, avr_timer_compd_down };
 
 	for (int compi = 0; compi < AVR_TIMER_COMP_COUNT; compi++) {
 		if (p->comp[compi].comp_cycles) {
@@ -151,6 +177,9 @@ static avr_cycle_count_t avr_timer_tov(struct avr_t * avr, avr_cycle_count_t whe
 			} else if (p->tov_cycles == p->comp[compi].comp_cycles && !start)
 				dispatch[compi](avr, when, param);
 		}
+        if (p->comp[compi].compd_cycles) {
+            avr_cycle_timer_register(avr, p->comp[compi].compd_cycles, dispatchdown[compi], p);
+        }
 	}
 
 	return when + p->tov_cycles;
@@ -243,6 +272,7 @@ static void avr_timer_configure(avr_timer_t * p, uint32_t clock, uint32_t top)
 		float fc = clock / (float)(ocr+1);
 
 		p->comp[compi].comp_cycles = 0;
+		p->comp[compi].compd_cycles = 0;
 	//	printf("%s-%c clock %d top %d OCR%c %d\n", __FUNCTION__, p->name, clock, top, 'A'+compi, ocr);
 
 		if (ocr && ocr <= top) {
@@ -250,6 +280,13 @@ static void avr_timer_configure(avr_timer_t * p, uint32_t clock, uint32_t top)
 			AVR_LOG(p->io.avr, LOG_TRACE, "TIMER: %s-%c %c %.2fHz = %d cycles\n", 
 					__FUNCTION__, p->name,
 					'A'+compi, fc, (int)p->comp[compi].comp_cycles);
+
+            // phase-correct pwm downcounter
+            if (p->wgm_op_mode_kind == avr_timer_wgm_pc_pwm)
+            {
+                float fcd = clock / (float)((top - ocr) + 1);
+                p->comp[compi].compd_cycles = frequency / fcd;
+            }
 		}
 	}
 
@@ -266,9 +303,10 @@ static void avr_timer_reconfigure(avr_timer_t * p)
 	avr_t * avr = p->io.avr;
 
 	// cancel everything
-	p->comp[AVR_TIMER_COMPA].comp_cycles = 0;
-	p->comp[AVR_TIMER_COMPB].comp_cycles = 0;
-	p->comp[AVR_TIMER_COMPC].comp_cycles = 0;
+	p->comp[AVR_TIMER_COMPA].comp_cycles = p->comp[AVR_TIMER_COMPA].compd_cycles = 0;
+	p->comp[AVR_TIMER_COMPB].comp_cycles = p->comp[AVR_TIMER_COMPB].compd_cycles = 0;
+	p->comp[AVR_TIMER_COMPC].comp_cycles = p->comp[AVR_TIMER_COMPC].compd_cycles = 0;
+	p->comp[AVR_TIMER_COMPD].comp_cycles = p->comp[AVR_TIMER_COMPD].compd_cycles = 0;
 	p->tov_cycles = 0;
 	
 	avr_timer_cancel_all_cycle_timers(avr, p);
@@ -278,6 +316,9 @@ static void avr_timer_reconfigure(avr_timer_t * p)
 			avr_timer_configure(p, p->cs_div_clock, p->wgm_op_mode_size);
 			break;
 		case avr_timer_wgm_fc_pwm:
+			avr_timer_configure(p, p->cs_div_clock, p->wgm_op_mode_size);
+			break;
+		case avr_timer_wgm_pc_pwm:
 			avr_timer_configure(p, p->cs_div_clock, p->wgm_op_mode_size);
 			break;
 		case avr_timer_wgm_ctc: {
@@ -314,6 +355,9 @@ static void avr_timer_write_ocr(struct avr_t * avr, avr_io_addr_t addr, uint8_t 
 			avr_timer_reconfigure(timer);
 			break;
 		case avr_timer_wgm_fc_pwm:	// OCR is not used here
+			avr_timer_reconfigure(timer);
+			break;
+		case avr_timer_wgm_pc_pwm:	// OCR is not used here
 			avr_timer_reconfigure(timer);
 			break;
 		case avr_timer_wgm_ctc:
@@ -370,10 +414,10 @@ static void avr_timer_write(struct avr_t * avr, avr_io_addr_t addr, uint8_t v, v
 	/* cs */
 		if (new_cs == 0) {
 			// cancel everything
-			p->comp[AVR_TIMER_COMPA].comp_cycles = 0;
-			p->comp[AVR_TIMER_COMPB].comp_cycles = 0;
-			p->comp[AVR_TIMER_COMPC].comp_cycles = 0;
-			p->comp[AVR_TIMER_COMPD].comp_cycles = 0;
+			p->comp[AVR_TIMER_COMPA].comp_cycles = p->comp[AVR_TIMER_COMPA].compd_cycles = 0;
+			p->comp[AVR_TIMER_COMPB].comp_cycles = p->comp[AVR_TIMER_COMPA].compd_cycles = 0;
+			p->comp[AVR_TIMER_COMPC].comp_cycles = p->comp[AVR_TIMER_COMPA].compd_cycles = 0;
+			p->comp[AVR_TIMER_COMPD].comp_cycles = p->comp[AVR_TIMER_COMPA].compd_cycles = 0;
 			p->tov_cycles = 0;
 	
 			avr_cycle_timer_cancel(avr, avr_timer_tov, p);
@@ -459,6 +503,7 @@ static void avr_timer_reset(avr_io_t * port)
 	// it's own IRQ
 	for (int compi = 0; compi < AVR_TIMER_COMP_COUNT; compi++) {
 		p->comp[compi].comp_cycles = 0;
+		p->comp[compi].compd_cycles = 0;
 
 		avr_ioport_getirq_t req = {
 			.bit = p->comp[compi].com_pin

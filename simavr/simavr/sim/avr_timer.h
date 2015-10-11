@@ -56,6 +56,7 @@ enum {
 	avr_timer_wgm_pwm,
 	avr_timer_wgm_fast_pwm,
 	avr_timer_wgm_fc_pwm,
+    avr_timer_wgm_pc_pwm,
 };
 
 // Compare output modes
@@ -86,6 +87,9 @@ typedef struct avr_timer_wgm_t {
 #define AVR_TIMER_WGM_FCPWM8() { .kind = avr_timer_wgm_fc_pwm, .size=8 }
 #define AVR_TIMER_WGM_FCPWM9() { .kind = avr_timer_wgm_fc_pwm, .size=9 }
 #define AVR_TIMER_WGM_FCPWM10() { .kind = avr_timer_wgm_fc_pwm, .size=10 }
+#define AVR_TIMER_WGM_PCPWM8() { .kind = avr_timer_wgm_pc_pwm, .size=8 }
+#define AVR_TIMER_WGM_PCPWM9() { .kind = avr_timer_wgm_pc_pwm, .size=9 }
+#define AVR_TIMER_WGM_PCPWM10() { .kind = avr_timer_wgm_pc_pwm, .size=10 }
 #define AVR_TIMER_WGM_OCPWM() { .kind = avr_timer_wgm_pwm, .top = avr_timer_wgm_reg_ocra }
 #define AVR_TIMER_WGM_ICPWM() { .kind = avr_timer_wgm_pwm, .top = avr_timer_wgm_reg_icr }
 
@@ -96,7 +100,8 @@ typedef struct avr_timer_comp_t {
 		avr_io_addr_t		r_ocrh;			// comparator register hi byte
 		avr_regbit_t		com;			// comparator output mode registers
 		avr_regbit_t		com_pin;		// where comparator output is connected
-		uint64_t		comp_cycles;
+		uint64_t		    comp_cycles;    // compare cycles when counting up
+        uint64_t            compd_cycles;   // compare cycles when counting down in phase-correct mode
 } avr_timer_comp_t, *avr_timer_comp_p;
 
 typedef struct avr_timer_t {
