@@ -123,6 +123,11 @@ static avr_cycle_count_t avr_timer_compc(struct avr_t * avr, avr_cycle_count_t w
 	return avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPC);
 }
 
+static avr_cycle_count_t avr_timer_compd(struct avr_t * avr, avr_cycle_count_t when, void * param)
+{
+	return avr_timer_comp((avr_timer_t*)param, when, AVR_TIMER_COMPD);
+}
+
 // timer overflow
 static avr_cycle_count_t avr_timer_tov(struct avr_t * avr, avr_cycle_count_t when, void * param)
 {
@@ -134,7 +139,7 @@ static avr_cycle_count_t avr_timer_tov(struct avr_t * avr, avr_cycle_count_t whe
 	p->tov_base = when;
 
 	static const avr_cycle_timer_t dispatch[AVR_TIMER_COMP_COUNT] =
-		{ avr_timer_compa, avr_timer_compb, avr_timer_compc };
+		{ avr_timer_compa, avr_timer_compb, avr_timer_compc, avr_timer_compd };
 
 	for (int compi = 0; compi < AVR_TIMER_COMP_COUNT; compi++) {
 		if (p->comp[compi].comp_cycles) {
@@ -181,6 +186,7 @@ static void avr_timer_cancel_all_cycle_timers(struct avr_t * avr, avr_timer_t *t
 	avr_cycle_timer_cancel(avr, avr_timer_compa, timer);
 	avr_cycle_timer_cancel(avr, avr_timer_compb, timer);
 	avr_cycle_timer_cancel(avr, avr_timer_compc, timer);
+	avr_cycle_timer_cancel(avr, avr_timer_compd, timer);
 }
 
 static void avr_timer_tcnt_write(struct avr_t * avr, avr_io_addr_t addr, uint8_t v, void * param)
@@ -367,12 +373,14 @@ static void avr_timer_write(struct avr_t * avr, avr_io_addr_t addr, uint8_t v, v
 			p->comp[AVR_TIMER_COMPA].comp_cycles = 0;
 			p->comp[AVR_TIMER_COMPB].comp_cycles = 0;
 			p->comp[AVR_TIMER_COMPC].comp_cycles = 0;
+			p->comp[AVR_TIMER_COMPD].comp_cycles = 0;
 			p->tov_cycles = 0;
 	
 			avr_cycle_timer_cancel(avr, avr_timer_tov, p);
 			avr_cycle_timer_cancel(avr, avr_timer_compa, p);
 			avr_cycle_timer_cancel(avr, avr_timer_compb, p);
 			avr_cycle_timer_cancel(avr, avr_timer_compc, p);
+			avr_cycle_timer_cancel(avr, avr_timer_compd, p);
 
 			AVR_LOG(avr, LOG_TRACE, "TIMER: %s-%c clock turned off\n", __FUNCTION__, p->name);
 			return;
@@ -478,6 +486,7 @@ static const char * irq_names[TIMER_IRQ_COUNT] = {
 	[TIMER_IRQ_OUT_COMP + 0] = ">compa",
 	[TIMER_IRQ_OUT_COMP + 1] = ">compb",
 	[TIMER_IRQ_OUT_COMP + 2] = ">compc",
+	[TIMER_IRQ_OUT_COMP + 3] = ">compd",
 };
 
 static	avr_io_t	_io = {
