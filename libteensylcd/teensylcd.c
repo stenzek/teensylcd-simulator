@@ -11,7 +11,7 @@
 #include <string.h>
 
 static const char *button_names[NUM_TEENSYLCD_BUTTONS] = { 
-    "teensylcd.sw0", "teensylcd.sw1", "teensylcd.sw2", "teensylcd.sw3"
+    "teensylcd.sw0", "teensylcd.sw1", "teensylcd.sw2", "teensylcd.sw3",
     "teensylcd.stickup", "teensylcd.stickdown", "teensylcd.stickleft", "teensylcd.stickright", "teensylcd.stickpush"
 };
 
