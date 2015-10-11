@@ -88,6 +88,9 @@ bool teensylcd_run_frame(struct teensylcd_t *teensy, uint32_t target_framerate);
 /* run the avr until a refresh is performed, ie the lcd raster position reaches the current position (usually 0,0) again */
 bool teensylcd_run_until_refresh(struct teensylcd_t *teensy);
 
+/* is a lcd-related tracer event */
+bool teensylcd_is_lcd_tracer_event(avr_tracer_event event, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4);
+
 /* cleanup */
 void teensylcd_cleanup(struct teensylcd_t *teensy);
 

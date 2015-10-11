@@ -25,6 +25,19 @@ static void sigint_handler(int n)
     exit_flag = true;
 }
 
+static void tracer_event_callback(struct avr_t *avr, void *param, avr_tracer_event event, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
+{
+    // filter out LCD-related events
+    if (teensylcd_is_lcd_tracer_event(event, p1, p2, p3, p4))
+        return;
+
+    // filter interrupt messages
+    if (event == avr_tracer_event_interrupt)
+        return;
+
+    printf("tracer_event(%u, %u, %u, %u, %u)\n", event, p1, p2, p3, p4);
+}
+
 static void usage(const char *progname)
 {
     fprintf(stderr, "TeensyLCD Simulator\n");
@@ -152,6 +165,9 @@ int main(int argc, char *argv[])
 		//teensy->avr->state = cpu_Stopped;
 		avr_gdb_init(teensy->avr);
 	}
+
+    /* setup tracer */
+    teensy->avr->tracer_callback = tracer_event_callback;
 
     /* create lcd window */
     fprintf(stdout, "Creating LCD window...\n");

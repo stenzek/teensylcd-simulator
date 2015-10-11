@@ -314,6 +314,21 @@ bool teensylcd_run_until_refresh(struct teensylcd_t *teensy)
     return true;
 }
 
+bool teensylcd_is_lcd_tracer_event(avr_tracer_event event, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
+{
+    if (event == avr_tracer_event_ioport)
+    {
+        if ((p1 == 'B' && p2 >= 4 && p2 <= 6) ||
+            (p1 == 'D' && p2 == 7) ||
+            (p1 == 'F' && p2 == 7))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void teensylcd_cleanup(struct teensylcd_t *teensy)
 {
     avr_terminate(teensy->avr);
