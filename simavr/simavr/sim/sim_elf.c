@@ -217,7 +217,7 @@ static void elf_parse_mmcu_section(elf_firmware_t * firmware, uint8_t * src, uin
 	}
 }
 
-#ifndef EMSCRIPTEN
+#if !defined(EMSCRIPTEN) && defined(HAVE_LIBELF)
 #include <libelf.h>
 #include <gelf.h>
 

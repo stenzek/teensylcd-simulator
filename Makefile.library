@@ -1,0 +1,18 @@
+OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))
+DEPFILES := $(patsubst %.c,%.d,$(SRCFILES))
+
+SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+include $(SELF_DIR)Makefile.base
+
+$(LIBNAME): $(OBJFILES)
+	$(AR) rcs $@.a $^
+
+all: $(LIBNAME)
+
+clean:
+	rm -f $(DEPFILES)
+	rm -f $(OBJFILES)
+	rm -f $(LIBNAME).a
+
+-include $(DEPFILES)
+

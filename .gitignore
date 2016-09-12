@@ -1,3 +1,7 @@
 build/
 build-web/
 
+*.d
+*.o
+*.a
+
